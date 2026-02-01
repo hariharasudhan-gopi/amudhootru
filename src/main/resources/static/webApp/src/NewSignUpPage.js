@@ -11,7 +11,7 @@ const NewSignUpPage = () => {
     <div>
       <h1>Create Your New Account to Continue....</h1>
       <div>
-        <ApplicationForm applicantType = 'newUser' title = 'ThulirVanam Welcomes You' fieldsList = {signUpFields} setInitialLoad = {setInitialLoad}/>
+        <ApplicationForm applicantType = 'newUser' title = 'Amudhootru Welcomes You' fieldsList = {signUpFields} setInitialLoad = {setInitialLoad}/>
       </div>
     </div>
   )
