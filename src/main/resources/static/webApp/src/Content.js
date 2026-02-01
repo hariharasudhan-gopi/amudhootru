@@ -14,7 +14,7 @@ const Content = () => {
   return (
     <div>
 
-      {actionState === "editProfile" ? <ApplicationForm applicantType = 'newUser' title = 'ThulirVanam Welcomes You' fieldsList = {fieldList} setInitialLoad = {setInitialLoad}/> : <HomeContent/> }
+      {actionState === "editProfile" ? <ApplicationForm applicantType = 'newUser' title = 'Amudhootru Welcomes You' fieldsList = {fieldList} setInitialLoad = {setInitialLoad}/> : <HomeContent/> }
 
 
 
