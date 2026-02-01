@@ -10,7 +10,7 @@ const NavigationBar = () => {
   return (
     <div>
         <nav className='navigationBar'>
-            <p className='pageTitle'>ThulirVanam Welcomes You {localStorage.getItem("UserName")}</p>
+            <p className='pageTitle'>Amudhootru Welcomes You {localStorage.getItem("UserName")}</p>
             <ul className='navigationList'>
                 <li id = "service">
                     <NavLink to='/Product' className={tabStatus}>Product</NavLink>
