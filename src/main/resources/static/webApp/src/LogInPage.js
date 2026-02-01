@@ -11,7 +11,7 @@ const LogInPage = () => {
     <div>
       <h1>LogIn to Continue....</h1>
       <div>
-      <ApplicationForm applicantType = 'existingUser' title = 'ThulirVanam Welcomes You' fieldsList = {signInFields} setInitialLoad = {setInitialLoad}/>
+      <ApplicationForm applicantType = 'existingUser' title = 'Amudhootru Welcomes You' fieldsList = {signInFields} setInitialLoad = {setInitialLoad}/>
       </div>
     </div>
   )
