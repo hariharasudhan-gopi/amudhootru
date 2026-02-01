@@ -1,0 +1,31 @@
+import React from 'react'
+import { useField } from './../context/FieldList';
+
+const HashPickListComponent = (properties) => {
+    const {errorMessage} = useField();
+    function hashFocusOut(eve){
+        if(properties.hashFocusOut){
+            properties.hashFocusOut(eve);
+        }
+    }
+  return (
+    <div className={'hashComponent ' + properties.fieldClass}>
+      {properties.showLabel ? (<label id = {properties.id}>{properties.label + " : "}</label>) : null}
+      {properties.isEditable ? (
+        <span className='fieldContainer'>
+          <select name={properties.id} className = {properties.applicantType + "_" + properties.id}>
+            {properties.picklistValue.map((list) => (
+                <option value={list.value}>{list.value}</option>
+            ))}
+          </select>
+          <p className='errorMessage hide'>{errorMessage && errorMessage[properties.fieldClass] ? errorMessage[properties.fieldClass] : "ErrorMsg"}</p>
+        </span>
+      ) : (
+          <span className='fieldContainer'>{properties.fieldValue}</span>
+      )}
+        
+    </div>
+  )
+}
+
+export default HashPickListComponent

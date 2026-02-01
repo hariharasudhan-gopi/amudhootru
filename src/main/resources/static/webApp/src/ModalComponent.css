@@ -1,0 +1,51 @@
+.modal{
+    position: fixed;
+    top: 0px;
+    left: 70%;
+    height: 100%;
+    width: 30%;
+    background-color: rgb(255, 255, 255);
+    z-index: 10;
+}
+.modal .modalContent{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+}
+.modalHeader{
+    /* background-color:rgb(95, 95, 95); */
+    border-bottom: 1px solid rgb(121, 121, 121);
+    height: 25px;
+    position: relative;
+    padding: 20px;
+    font-size:xx-large;
+    font-weight: 600;
+}
+.closeModal{
+    cursor: pointer;
+    position: absolute;
+    right: 20px;
+}
+.bodyContainer{
+    /* background-color: rgb(221, 221, 221); */
+}
+.modalContent .fieldContainer_ProfileImage img{
+    height: 150px;
+    width: 150px;
+    padding: 20px;
+}
+.modalContent .fieldContainer_ProfileImage .uploadImageIcon{
+    padding: 0px;
+    color: brown;
+}
+.modalContent .modalcontentContainer{
+    justify-content: center;
+}
+.modalContent .modalcontentContainer .hashFieldContainer{
+    padding: 5px;
+}
+.modalcontentContainer .profileDetailsContainer{
+    display: flex;
+    flex-direction: row;
+}

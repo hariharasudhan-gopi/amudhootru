@@ -1,0 +1,8 @@
+.productQuantityContainer {
+    display: flex;
+    flex-direction: row;
+}
+.quantityControllers{
+    padding-left: 10px;
+    padding-right: 10px;
+}

@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/thulir/static/css/main.ee89c9f5.css",
+    "main.js": "/thulir/static/js/main.05dd770b.js",
+    "static/media/Product1.png": "/thulir/static/media/Product1.17584beb45f86769ffcd.png",
+    "static/media/Product4.png": "/thulir/static/media/Product4.d751b08d67f886ca3b60.png",
+    "static/media/Product3.png": "/thulir/static/media/Product3.0da3a59571edabfbfe26.png",
+    "static/media/Product2.png": "/thulir/static/media/Product2.f30d99d379b25bb1636a.png",
+    "static/media/Profiletemplate.png": "/thulir/static/media/Profiletemplate.5965a24dcf9730a1bed2.png",
+    "index.html": "/thulir/index.html",
+    "main.ee89c9f5.css.map": "/thulir/static/css/main.ee89c9f5.css.map",
+    "main.05dd770b.js.map": "/thulir/static/js/main.05dd770b.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ee89c9f5.css",
+    "static/js/main.05dd770b.js"
+  ]
+}
