@@ -100,6 +100,7 @@ export default function ManageOrders(props) {
                                 <th>Invoice ID</th>
                                 <th>Customer</th>
                                 <th>Date</th>
+                                <th>Delivery Address</th>
                                 <th>Products</th>
                                 <th>Current Status</th>
                                 <th>Update Status</th>
@@ -107,7 +108,7 @@ export default function ManageOrders(props) {
                         </thead>
                         <tbody>
                             {orders.length === 0 ? (
-                                <tr><td colSpan={6} className="noOrdersCell">No orders found.</td></tr>
+                                <tr><td colSpan={7} className="noOrdersCell">No orders found.</td></tr>
                             ) : orders.map(order => (
                                 <tr key={order.invoiceid}>
                                     <td className="orderIdCell">{order.invoiceid}</td>
@@ -119,6 +120,7 @@ export default function ManageOrders(props) {
                                     <td className="orderDateCell">
                                         {new Date(order.dateoforder).toLocaleDateString()}
                                     </td>
+                                    <td className="deliveryAddressCell">{order.deliveryaddress || '—'}</td>
                                     <td>
                                         <ul className="manageProductList">
                                             {(order.products || []).map(p => (
@@ -141,9 +143,9 @@ export default function ManageOrders(props) {
                                                     <option key={s.value} value={s.value}>{s.label}</option>
                                                 ))}
                                             </select>
-                                            {updateMsg[order.id] && (
-                                                <span className={`updateMsg${updateMsg[order.id].startsWith('Failed') ? ' updateMsgError' : ''}`}>
-                                                    {updateMsg[order.id]}
+                                            {updateMsg[order.invoiceid] && (
+                                                <span className={`updateMsg${updateMsg[order.invoiceid].startsWith('Failed') ? ' updateMsgError' : ''}`}>
+                                                    {updateMsg[order.invoiceid]}
                                                 </span>
                                             )}
                                         </div>
