@@ -1,0 +1,134 @@
+.backtoProductPage {
+    margin-left: 88%;
+    margin-top: 2%;
+    color: #185e87;
+    cursor: pointer;
+    font-weight: 600;
+}
+.backtoProductPage:hover {
+    color: #c1ebf7;
+}
+
+@media (max-width: 768px) {
+    .trackOrdersWrapper{ width: 96%; }
+    .backtoProductPage{ margin-left: 60%; }
+}
+@media (max-width: 480px) {
+    .trackOrdersWrapper{ width: 100%; border-radius: 0; }
+    .backtoProductPage{ margin-left: 4%; }
+    .trackOrdersTitle{ font-size: 1.3rem; }
+    .ordersTable thead tr th,
+    .ordersTable tbody tr td{ padding: 10px 10px; font-size: 0.78rem; }
+}
+
+/* ── page wrapper ─────────────────────────────────── */
+.trackOrdersWrapper {
+    width: 86%;
+    margin: 0 auto 60px;
+    border-radius: 12px;
+    background: #ffffff7a;
+    overflow-x: auto;
+}
+
+.trackOrdersTitle {
+    color: #185e87;
+    font-size: 1.8rem;
+    margin-bottom: 24px;
+}
+
+/* ── outer orders table ───────────────────────────── */
+.ordersTable {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 12px;
+}
+
+.ordersTable thead tr th {
+    background-color: #185e87;
+    color: white;
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 0.85rem;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+.ordersTable thead tr th:first-child { border-radius: 12px 0 0 12px; }
+.ordersTable thead tr th:last-child  { border-radius: 0 12px 12px 0; }
+
+.ordersTable tbody tr {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.ordersTable tbody tr:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(24, 94, 135, 0.15);
+}
+
+.ordersTable tbody tr td {
+    padding: 16px 20px;
+    vertical-align: middle;
+    border-top: 1px solid rgba(24, 94, 135, 0.1);
+    border-bottom: 1px solid rgba(24, 94, 135, 0.1);
+}
+.ordersTable tbody tr td:first-child {
+    border-left: 1px solid rgba(24, 94, 135, 0.1);
+    border-radius: 12px 0 0 12px;
+}
+.ordersTable tbody tr td:last-child {
+    border-right: 1px solid rgba(24, 94, 135, 0.1);
+    border-radius: 0 12px 12px 0;
+}
+
+.orderIdCell {
+    font-weight: 700;
+    color: #185e87;
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+/* ── status badge ─────────────────────────────────── */
+.statusBadge {
+    display: inline-block;
+    padding: 5px 16px;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+/* ── inner products table ─────────────────────────── */
+.productsInnerTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.productsInnerTable thead tr th {
+    background: rgba(24, 94, 135, 0.08);
+    color: #185e87;
+    padding: 7px 14px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    border-bottom: 1px solid rgba(24, 94, 135, 0.15);
+}
+.productsInnerTable thead tr th:first-child { border-radius: 8px 0 0 0; }
+.productsInnerTable thead tr th:last-child  { border-radius: 0 8px 0 0; }
+
+.productsInnerTable tbody tr td {
+    padding: 7px 14px;
+    font-size: 0.9rem;
+    color: #333;
+    border-bottom: 1px solid rgba(24, 94, 135, 0.07);
+}
+.productsInnerTable tbody tr:last-child td {
+    border-bottom: none;
+}
+.productsInnerTable tbody tr:hover td {
+    background: rgba(193, 235, 247, 0.3);
+}

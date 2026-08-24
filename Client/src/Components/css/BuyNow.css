@@ -1,0 +1,86 @@
+.backtoProductPage{
+    margin-left: 88%;
+    margin-top: 2%;
+    color: #185e87;
+    cursor: pointer;
+}
+.backtoProductPage:hover{
+    color: #c1ebf7;
+}
+.buyNowContainer{
+    background-color: white;
+    width: 80%;
+    min-height: 80%;
+    margin-left: 10%;
+    margin-top: 2%;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    border-radius: 60px;
+}
+.buyNowContent{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+.buyNowLeftContainer{
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+}
+.buyNowRightContainer{
+    width: 50%;
+    padding: 30px;
+}
+
+@media (max-width: 768px) {
+    .backtoProductPage{ margin-left: 70%; }
+    .buyNowContainer{
+        width: 92%;
+        margin-left: 4%;
+        border-radius: 30px;
+    }
+    .buyNowContent{ flex-direction: column; }
+    .buyNowLeftContainer,
+    .buyNowRightContainer{
+        width: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+}
+@media (max-width: 480px) {
+    .backtoProductPage{ margin-left: 4%; margin-top: 12px; }
+    .buyNowContainer{
+        width: 96%;
+        margin-left: 2%;
+        border-radius: 20px;
+    }
+    .buyNowLeftContainer,
+    .buyNowRightContainer{ padding: 14px; }
+}
+.addressSection{
+    display: flex;
+    justify-content: space-between;
+}
+.changeAddress{
+    color: #185e87;
+    cursor: pointer;
+}
+.changeAddress:hover{
+    color: #c1ebf7;
+}
+.placeOrderButton{
+    width: 100px;
+    height: 30px;
+    border-radius: 10px;
+    border: none;
+    background-color: #185e87;
+    color: white;
+    cursor: pointer;
+}
+.placeOrderButton:hover{
+    background-color: #c1ebf7;
+    color: black;
+}

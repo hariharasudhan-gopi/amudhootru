@@ -1,0 +1,23 @@
+.buyNowProductListContainer{
+    border-bottom: 2px solid #f3f3f3;
+    width: 100%;
+    padding: 20px;
+    background-color: #fafafa;
+}
+.productDetails{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.quantityInfo{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+.buyNowProductListContainer p, .buyNowProductListContainer h3{
+    margin: auto;
+}

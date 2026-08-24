@@ -1,0 +1,188 @@
+.addProductsContainer {
+    width: 30%;
+    margin-left: auto;
+    margin-top: 40px;
+    margin-right: 100px;
+    background-color: #414040b5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 60px;
+    gap: 30px;
+    color: white;
+    padding: 40px 0;
+}
+
+@media (max-width: 1024px) {
+    .addProductsContainer{
+        width: 55%;
+        margin: 40px auto;
+    }
+}
+@media (max-width: 768px) {
+    .addProductsContainer{
+        width: 80%;
+        margin: 30px auto;
+        border-radius: 40px;
+    }
+    .addProductsLabel input,
+    .addProductsLabel textarea{ width: 240px; }
+    .lookupInput{ width: 160px; }
+}
+@media (max-width: 480px) {
+    .addProductsContainer{
+        width: 92%;
+        margin: 16px auto;
+        border-radius: 24px;
+        gap: 16px;
+    }
+    .addProductsLabel input,
+    .addProductsLabel textarea{ width: 200px; }
+}
+.backtoProductPage {
+    align-self: flex-start;
+    margin-left: 24px;
+    color: #c1ebf7;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.backtoProductPage:hover {
+    color: white;
+}
+.addProductsHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.addProductsHeader h2 {
+    margin-bottom: auto;
+}
+.addProductsForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+.addProductsLabel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+.addProductsLabel input,
+.addProductsLabel textarea {
+    width: 300px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    background-color: #c3c1c199;
+    color: white;
+    font-size: 14px;
+}
+.addProductsLabel input {
+    height: 30px;
+}
+.addProductsLabel textarea {
+    resize: vertical;
+    padding: 8px;
+}
+.addProductsLabel input[type="file"] {
+    height: auto;
+    padding: 4px;
+    cursor: pointer;
+}
+.addProductsLabel input:focus,
+.addProductsLabel textarea:focus {
+    outline: none;
+    border: 1px solid #c1ebf7;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+.imagePreview {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #c1ebf7;
+}
+.addProductsButton {
+    width: 120px;
+    height: 34px;
+    border-radius: 10px;
+    border: none;
+    background-color: #185e87;
+    color: white;
+    cursor: pointer;
+    margin-top: 6px;
+}
+.addProductsButton:hover {
+    background-color: #c1ebf7;
+    color: black;
+}
+.inputError {
+    font-size: 12px;
+    color: #f4a0a0;
+}
+.inputErrorBorder {
+    border: 1px solid #f4a0a0 !important;
+}
+.formError {
+    text-align: center;
+}
+.successMessage {
+    font-size: 13px;
+    color: #a0f4b0;
+}
+.modeToggle {
+    display: flex;
+    gap: 10px;
+}
+.modeBtn {
+    padding: 6px 18px;
+    border-radius: 20px;
+    border: 1px solid #c1ebf7;
+    background: transparent;
+    color: #c1ebf7;
+    cursor: pointer;
+    font-size: 13px;
+}
+.modeBtn:hover {
+    background-color: rgba(193, 235, 247, 0.15);
+}
+.modeBtnActive {
+    background-color: #185e87;
+    color: white;
+    border-color: #185e87;
+}
+.lookupRow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+.lookupInput {
+    width: 200px;
+    height: 30px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    background-color: #c3c1c199;
+    color: white;
+    font-size: 14px;
+}
+.lookupBtn {
+    width: 70px;
+    height: 28px;
+    border-radius: 10px;
+    border: none;
+    background-color: #185e87;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+}
+.lookupBtn:hover {
+    background-color: #c1ebf7;
+    color: black;
+}

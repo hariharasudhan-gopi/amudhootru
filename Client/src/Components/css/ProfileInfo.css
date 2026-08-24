@@ -1,0 +1,239 @@
+.profileInfoContainer{
+    height: 100vh;
+    width: 33%;
+    background-color: white;
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 10;
+    padding: 20px;
+    color: black;
+    border-radius: 20px;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .profileInfoContainer{ width: 60%; }
+}
+@media (max-width: 480px) {
+    .profileInfoContainer{
+        width: 100%;
+        border-radius: 0;
+    }
+}
+.profileInfoContainer .profileInfoImage{
+    height: 150px;
+    width: 150px;
+}
+.profileInfoHeader{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(160deg, #0097c2 0%, #393939 100%);
+    margin: -20px -20px 20px;
+    padding: 30px 20px 22px;
+    border-radius: 18px 18px 40px 40px;
+    position: relative;
+    gap: 6px;
+}
+.close-icon{
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    color: rgba(255,255,255,0.8);
+    font-size: 1rem;
+    cursor: pointer;
+}
+.close-icon:hover{
+    color: #c1ebf7;
+}
+.profileInfoAddress{
+    position: static;
+    margin-left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.profileEditLink{
+    margin: 0;
+    color: rgba(193, 235, 247, 0.9);
+    font-size: 0.8rem;
+    border: 1px solid rgba(193, 235, 247, 0.4);
+    padding: 3px 14px;
+    border-radius: 10px;
+}
+.profileEditLink:hover{
+    cursor: pointer;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    text-decoration: none;
+}
+.profileEdit{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.profileEdit .profileInfoImage{
+
+    margin-left: 70%;
+}
+.profileEditForm{
+    display: flex;
+    flex-direction: column;
+}
+.profileEditLabel{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+.profileEditLabel input{
+    width: 300px;
+    height: 30px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    background-color: #c3c1c199;
+}
+.profileEditLabel input:focus{
+    outline: none;
+    border: 1px solid #c1ebf7;
+    background-color: white;
+}
+.profileEditButton{
+    width: 100px;
+    height: 30px;
+    border-radius: 10px;
+    border: none;
+    background-color: #185e87;
+    color: white;
+    cursor: pointer;
+}
+.profileEditButton:hover{
+    background-color: #c1ebf7;
+    color: black;
+}
+.profileEditAddress{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.profileEditAddress input{
+    width: 215px !important;
+}
+
+/* ── preview banner inner elements ─────────────── */
+.profilePreview .profileInfoImage {
+    height: 90px;
+    width: 90px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    object-fit: cover;
+}
+
+.profileUserName {
+    color: white;
+    font-size: 1.15rem;
+    margin: 4px 0 0;
+    text-align: center;
+}
+
+/* ── profile details section ───────────────────── */
+.profileInfoDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 2px;
+}
+
+.profileDetailItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(24, 94, 135, 0.05);
+    border: 1px solid rgba(24, 94, 135, 0.08);
+    font-size: 0.9rem;
+    color: #333;
+    margin: 0;
+}
+
+.detailIcon {
+    color: #185e87;
+    width: 16px;
+    text-align: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.profileSectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #185e87;
+    font-weight: 700;
+    margin: 10px 0 4px;
+    padding: 0 2px;
+}
+.profileSectionTitle::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(24, 94, 135, 0.18);
+}
+
+.profileAddressLine {
+    font-size: 0.88rem;
+    color: #555;
+    padding: 3px 10px;
+    margin: 0;
+    display: flex;
+    gap: 6px;
+}
+.profileAddressLine::before {
+    content: '·';
+    color: #185e87;
+    font-weight: bold;
+}
+
+/* ── edit mode enhancements ────────────────────── */
+.back-icon {
+    color: #185e87;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    width: fit-content;
+    transition: background 0.2s;
+}
+.back-icon:hover {
+    background: rgba(24, 94, 135, 0.1);
+}
+
+.profileEdit .profileInfoImage {
+    border-radius: 50%;
+    border: 3px solid #185e87;
+}
+
+.profileEditButton {
+    width: 130px;
+    height: 34px;
+    border-radius: 10px;
+    border: none;
+    background-color: #185e87;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-top: 8px;
+    transition: background 0.2s, color 0.2s;
+}
+.profileEditButton:hover {
+    background-color: #c1ebf7;
+    color: black;
+}

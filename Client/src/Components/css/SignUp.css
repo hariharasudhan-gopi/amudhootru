@@ -1,0 +1,90 @@
+.signUpContainer{
+    width: 30%;
+    height: 645px;
+    margin-left: auto;
+    margin-top: 40px;
+    margin-right: 100px;
+    background-color: #414040b5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 60px;
+    gap: 40px;
+    color: white;
+}
+.signUpHeader{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.signUpHeader h2{
+    margin-bottom: auto;
+}
+.signUpForm{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.signUpLabel{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+.signUpLabel input{
+    width: 300px;
+    height: 30px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    background-color: #c3c1c199;
+}
+.signUpLabel input:focus{
+    outline: none;
+    border: 1px solid #c1ebf7;
+    background-color: white;
+}
+.signUpButton{
+    width: 100px;
+    height: 30px;
+    border-radius: 10px;
+    border: none;
+    background-color: #185e87;
+    color: white;
+    cursor: pointer;
+}
+.signUpButton:hover{
+    background-color: #c1ebf7;
+    color: black;
+}
+.loginLink{
+    color: #c1ebf7;
+}
+.inputError{
+    font-size: 12px;
+    color: #f4a0a0;
+}
+.inputErrorBorder{
+    border: 1px solid #f4a0a0 !important;
+}
+
+@media (max-width: 768px) {
+    .signUpContainer{
+        width: 60%;
+        margin: 30px auto;
+        border-radius: 40px;
+    }
+}
+@media (max-width: 480px) {
+    .signUpContainer{
+        width: 88%;
+        margin: 20px auto;
+        border-radius: 30px;
+        gap: 16px;
+        height: auto;
+        padding-bottom: 24px;
+    }
+    .signUpLabel input{
+        width: 240px;
+    }
+}
