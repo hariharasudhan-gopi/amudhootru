@@ -30,7 +30,7 @@ export function TrackOrders(props) {
     const fetchOrders = async () => {
         try {
             const response = await fetch(
-                `http://localhost:8080/orders/placed?userId=${props.userDetails.userId}`,{
+                `${process.env.REACT_APP_API_URL}/orders/placed?userId=${props.userDetails.userId}`,{
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
