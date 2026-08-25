@@ -11,7 +11,7 @@ export default function Product(props) {
 
     try {
       const response = fetch(
-        `http://localhost:8080/products/addtocart`,{
+        `${process.env.REACT_APP_API_URL}/products/addtocart`,{
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
