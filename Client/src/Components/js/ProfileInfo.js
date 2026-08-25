@@ -112,7 +112,7 @@ export default function ProfileInfo(props) {
     console.log(userInfo);
     try {
       const response = fetch(
-        `http://localhost:8080/userInfo`,{
+        `${process.env.REACT_APP_API_URL}/userInfo`,{
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
