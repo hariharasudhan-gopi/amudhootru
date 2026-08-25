@@ -42,7 +42,7 @@ export default function AddProducts() {
         }
         setLookupError('');
         try {
-            const res = await fetch(`http://localhost:8080/products/${encodeURIComponent(lookupCode.trim())}`);
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/products/${encodeURIComponent(lookupCode.trim())}`);
             if (!res.ok) {
                 const msg = await res.text();
                 throw new Error(msg);
@@ -90,7 +90,7 @@ export default function AddProducts() {
         setErrors({});
 
         try {
-            const url = isUpdate ? 'http://localhost:8080/products/update' : 'http://localhost:8080/products/add';
+            const url = isUpdate ? '${process.env.REACT_APP_API_URL}/products/update' : '${process.env.REACT_APP_API_URL}/products/add';
             const body = isUpdate
                 ? { code, name, price: Number(price), description, quantity: Number(quantity), img_src: imagePreview }
                 : { code, name, price: Number(price), description, quantity: Number(quantity), img_src: imagePreview };
