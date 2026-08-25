@@ -32,7 +32,7 @@ export default function DeliveryAddress(props) {
 
         try {
             const response = fetch(
-                `http://localhost:8080/userInfo/deliveryAddress`, {
+                `${process.env.REACT_APP_API_URL}/userInfo/deliveryAddress`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
