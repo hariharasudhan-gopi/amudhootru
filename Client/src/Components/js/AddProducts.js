@@ -90,7 +90,7 @@ export default function AddProducts() {
         setErrors({});
 
         try {
-            const url = isUpdate ? '${process.env.REACT_APP_API_URL}/products/update' : '${process.env.REACT_APP_API_URL}/products/add';
+            const url = isUpdate ? `${process.env.REACT_APP_API_URL}/products/update` : `${process.env.REACT_APP_API_URL}/products/add`;
             const body = isUpdate
                 ? { code, name, price: Number(price), description, quantity: Number(quantity), img_src: imagePreview }
                 : { code, name, price: Number(price), description, quantity: Number(quantity), img_src: imagePreview };
