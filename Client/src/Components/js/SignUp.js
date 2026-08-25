@@ -43,7 +43,7 @@ export default function SignUp(props) {
         console.log(userInfo);
         try {
         const response = fetch(
-          `http://localhost:8080/userInfo`,{
+          `${process.env.REACT_APP_API_URL}/userInfo`,{
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
