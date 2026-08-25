@@ -33,7 +33,7 @@ export default function BuyNow(props) {
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch('http://localhost:8080/products/getcart?userId=' + props.userDetails.userId, {
+            const response = await fetch('${process.env.REACT_APP_API_URL}/products/getcart?userId=' + props.userDetails.userId, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -91,7 +91,7 @@ export default function BuyNow(props) {
 
         try {
             // Step 1: Create Razorpay order on the server
-            const createResponse = await fetch('http://localhost:8080/orders/create-payment', {
+            const createResponse = await fetch('${process.env.REACT_APP_API_URL}/orders/create-payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -120,7 +120,7 @@ export default function BuyNow(props) {
                 handler: async function(response) {
                     // Step 3: Verify signature and place order
                     try {
-                        const placeResponse = await fetch('http://localhost:8080/orders/place', {
+                        const placeResponse = await fetch('${process.env.REACT_APP_API_URL}/orders/place', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
