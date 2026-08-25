@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileImage from "../../assets/images/profile_image_template.png";
+import Logo from "../../assets/images/logo.png";
 import ProfileInfo from "../js/ProfileInfo";
 export default function Header(props) {
     const navigate = useNavigate();
@@ -33,6 +34,7 @@ export default function Header(props) {
     return (
         <div className="header_container">
             <h1 className="header_title">Amudhootru</h1>
+            <img src={Logo} alt="Amudhootru logo" className="header_logo" />
             <span className="header_actions">
                 {props.isLoggedIn && <p className="header_loginButton" onClick={() => navigate('/track-orders')}>Track Orders</p>}
                 {props.isLoggedIn && props.userDetails?.isAdminUser && (
