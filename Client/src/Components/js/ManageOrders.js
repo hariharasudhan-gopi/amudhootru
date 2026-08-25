@@ -48,7 +48,7 @@ export default function ManageOrders(props) {
 
     async function updateStatus(invoiceid, newStatus) {
         try {
-            const res = await fetch('${process.env.REACT_APP_API_URL}/orders/update-status', {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/orders/update-status`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ invoiceid, status: Number(newStatus) })
