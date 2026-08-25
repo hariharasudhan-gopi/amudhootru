@@ -30,7 +30,7 @@ export default function ManageOrders(props) {
             if (filterParams.dateFrom) params.append('dateFrom', filterParams.dateFrom);
             if (filterParams.dateTo) params.append('dateTo', filterParams.dateTo);
 
-            const res = await fetch(`http://localhost:8080/orders/all?${params.toString()}`);
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/orders/all?${params.toString()}`);
             if (!res.ok) throw new Error(await res.text());
             setOrders(await res.json());
         } catch (err) {
@@ -48,7 +48,7 @@ export default function ManageOrders(props) {
 
     async function updateStatus(invoiceid, newStatus) {
         try {
-            const res = await fetch('http://localhost:8080/orders/update-status', {
+            const res = await fetch('${process.env.REACT_APP_API_URL}/orders/update-status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ invoiceid, status: Number(newStatus) })
