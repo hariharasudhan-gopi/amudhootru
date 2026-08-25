@@ -21,7 +21,7 @@ export default function Login(props) {
 
       try {
         const response = fetch(
-          `http://localhost:8080/userLogin`,{
+          `${process.env.REACT_APP_API_URL}/userLogin`,{
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
