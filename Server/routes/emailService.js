@@ -1,5 +1,8 @@
 const nodemailer = require("nodemailer");
+const dns = require("dns");
 require("dotenv").config();
+
+dns.setDefaultResultOrder("ipv4first");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -11,11 +14,12 @@ const transporter = nodemailer.createTransport({
     pass: process.env.GMAIL_APP_PASSWORD
   }
 });
-console.log("SMTP configuration:", {
-    port: 587,
-    secure: false,
-    userConfigured: !!process.env.GMAIL_USER,
-    passwordConfigured: !!process.env.GMAIL_APP_PASSWORD
+transporter.verify((error, success) => {
+    if (error) {
+        console.error("SMTP ERROR:", error);
+    } else {
+        console.log("SMTP connection successful");
+    }
 });
 
 async function sendInvoiceEmail(order) {
