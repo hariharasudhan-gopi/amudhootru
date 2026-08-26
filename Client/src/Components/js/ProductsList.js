@@ -48,7 +48,7 @@ export default function ProductsList(props) {
       {/* <h1>Products List</h1> */}
       <span className="productsList">
         {products.map(product => (
-          <Product key={product.id} {...product} isLoggedIn={props.isLoggedIn} userDetails={props.userDetails} setUserDetails={props.setUserDetails} /> 
+          <Product key={product.id} {...product} isLoggedIn={props.isLoggedIn} userDetails={props.userDetails} setUserDetails={props.setUserDetails} setCartToast={props.setCartToast} /> 
         ))}
       </span>
     </div>

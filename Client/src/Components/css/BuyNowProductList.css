@@ -21,3 +21,26 @@
 .buyNowProductListContainer p, .buyNowProductListContainer h3{
     margin: auto;
 }
+.buyNowProductHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.removeFromCartBtn {
+    background: none;
+    border: 1px solid #e05353;
+    color: #e05353;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.15s, color 0.15s;
+}
+.removeFromCartBtn:hover {
+    background: #e05353;
+    color: #fff;
+}

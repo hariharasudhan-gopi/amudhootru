@@ -207,4 +207,19 @@ router.post('/products/update', async function(req, res) {
     }
 });
 
+router.post('/products/removefromcart', async function(req, res) {
+    const { productCode, userId } = req.body;
+    if (!productCode || !userId) return res.status(400).send('productCode and userId are required.');
+    try {
+        await pool.query(
+            'DELETE FROM orderdetails WHERE productcode = $1 AND userid = $2 AND ordertype = 0',
+            [productCode, userId]
+        );
+        res.status(200).json({ message: 'Product removed from cart.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 module.exports = router;

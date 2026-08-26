@@ -1,7 +1,7 @@
 import "../css/Header.css";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { Routes, Route } from "react-router-dom";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileImage from "../../assets/images/profile_image_template.png";
 import Logo from "../../assets/images/logo.png";
@@ -9,6 +9,12 @@ import ProfileInfo from "../js/ProfileInfo";
 export default function Header(props) {
     const navigate = useNavigate();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+    useEffect(() => {
+        if (!props.cartToast) return;
+        const t = setTimeout(() => props.setCartToast(null), 2500);
+        return () => clearTimeout(t);
+    }, [props.cartToast]);
     function userLogin() {
         navigate('/login');
     }
@@ -44,7 +50,17 @@ export default function Header(props) {
                     <p className="header_loginButton" onClick={() => navigate('/manage-orders')}>Manage Orders</p>
                 )}
                 {!props.isLoggedIn ? <button className="header_loginButton" onClick={userLogin}>Login</button> : <button className="header_loginButton" onClick={userLogout}>Logout</button>}
-                {props.isLoggedIn && <i className=" cartIcon fa-solid fa-cart-shopping cart-icon" onClick={goToCart}></i>}
+                {props.isLoggedIn && (
+                    <span className="cartIconWrapper">
+                        <i className="cartIcon fa-solid fa-cart-shopping cart-icon" onClick={goToCart}></i>
+                        {props.cartToast && (
+                            <span className="cartToast">
+                                <i className="fa-solid fa-circle-check cartToastCheck"></i>
+                                <span><strong>{props.cartToast}</strong> added to cart!</span>
+                            </span>
+                        )}
+                    </span>
+                )}
                 <img
                     src={props.userDetails && props.userDetails.profileimage ? props.userDetails.profileimage : ProfileImage}
                     alt="Profile"

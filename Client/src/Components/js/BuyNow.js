@@ -58,6 +58,24 @@ export default function BuyNow(props) {
         }
     };
 
+    async function removeFromCart(productCode) {
+        try {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/products/removefromcart`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productCode, userId: props.userDetails.userId })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            setProducts(prev => {
+                const removed = prev.find(p => p.code === productCode);
+                if (removed) setTotalPrice(t => t - removed.price * (removed.quantity || 1));
+                return prev.filter(p => p.code !== productCode);
+            });
+        } catch (err) {
+            alert('Failed to remove item: ' + err.message);
+        }
+    }
+
     function goToProductPage() {
         navigate('/');
     }
@@ -176,7 +194,7 @@ export default function BuyNow(props) {
                         <h3>Products Added to Place Order</h3>
                     </span>
                     {products.map(product => (
-                        <BuyNowProductList key={product.id} products={[product]} setTotalPrice={setTotalPrice} updateProductQuantity={updateProductQuantity} />
+                        <BuyNowProductList key={product.id} products={[product]} setTotalPrice={setTotalPrice} updateProductQuantity={updateProductQuantity} onRemove={removeFromCart} />
                     ))}
                 </span>
                 <span className="buyNowRightContainer">

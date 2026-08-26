@@ -26,7 +26,12 @@ export default function BuyNowProductList(props) {
         <div className="buyNowProductListContainer">
             {props.products.map((product) => (
                 <div key={product.id} className="buyNowProduct">
-                    <h3>{product.name}</h3>
+                    <span className="buyNowProductHeader">
+                        <h3>{product.name}</h3>
+                        <button className="removeFromCartBtn" onClick={() => props.onRemove(product.code)} title="Remove from cart">
+                            <i className="fa-solid fa-trash"></i> Remove
+                        </button>
+                    </span>
                     <span className="productDetails">
                         <span className="priceDetails">
                             <span className="productPrice">

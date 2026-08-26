@@ -30,9 +30,11 @@ export default function Product(props) {
       })
       .then((data) => {
         console.log(data.message);
-        // mark cart as having items so the header cart icon navigates correctly
         if (props.setUserDetails) {
           props.setUserDetails(prev => ({ ...prev, isCartItemsAvailable: true }));
+        }
+        if (props.setCartToast) {
+          props.setCartToast(props.name);
         }
       })
       .catch((error) => {

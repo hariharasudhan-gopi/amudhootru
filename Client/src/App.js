@@ -15,6 +15,7 @@ function App() {
 
   const [userDetails, setUserDetails] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [cartToast, setCartToast] = useState(null);
 
   return (
     <div className="app_container">
@@ -22,9 +23,9 @@ function App() {
       {/* <ProfileInfo /> */}
 
       <BrowserRouter>
-        <Header isLoggedIn={isLoggedIn} userDetails={userDetails} setUserDetails={setUserDetails} setIsLoggedIn={setIsLoggedIn}/>
+        <Header isLoggedIn={isLoggedIn} userDetails={userDetails} setUserDetails={setUserDetails} setIsLoggedIn={setIsLoggedIn} cartToast={cartToast} setCartToast={setCartToast}/>
         <Routes>
-          <Route path="/" element={<ProductsList isLoggedIn={isLoggedIn} userDetails={userDetails} setUserDetails={setUserDetails}/>} />
+          <Route path="/" element={<ProductsList isLoggedIn={isLoggedIn} userDetails={userDetails} setUserDetails={setUserDetails} setCartToast={setCartToast}/>} />
           <Route path="/login" element={<Login setUserDetails={setUserDetails} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
           <Route path="/signup" element={<SignUp setUserDetails={setUserDetails} setIsLoggedIn={setIsLoggedIn} />} />
           <Route path="/buynow" element={<BuyNow isLoggedIn={isLoggedIn} userDetails={userDetails} setUserDetails={setUserDetails} />} />
