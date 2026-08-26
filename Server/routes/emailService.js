@@ -11,6 +11,12 @@ const transporter = nodemailer.createTransport({
     pass: process.env.GMAIL_APP_PASSWORD
   }
 });
+console.log("SMTP configuration:", {
+    port: 587,
+    secure: false,
+    userConfigured: !!process.env.GMAIL_USER,
+    passwordConfigured: !!process.env.GMAIL_APP_PASSWORD
+});
 
 async function sendInvoiceEmail(order) {
 
