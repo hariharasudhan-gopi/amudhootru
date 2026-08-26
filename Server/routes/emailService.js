@@ -156,7 +156,7 @@ async function sendDeliveryEmail({ customerName, customerEmail, invoiceNumber, s
       </div>
     </div>
   `;
-
+console.log("Sending delivery email to:", customerEmail);
   return await resend.emails.send({
     from: `Amudhootru <${process.env.GMAIL_USER}>`,
     to: customerEmail,
