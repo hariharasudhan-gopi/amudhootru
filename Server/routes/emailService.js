@@ -116,13 +116,21 @@ async function sendInvoiceEmail(order) {
   `;
 
   const mailOptions = {
-    from: process.env.GMAIL_USER,
+    from: `Amudhootru <${process.env.GMAIL_USER}>`,
     to: order.customerEmail,
     subject: `Invoice for Your Order #${order.invoiceNumber}`,
     html: html
   };
 
-  return await resend.emails(mailOptions);
+  console.log("Sending invoice email to:", order.customerEmail);
+  try {
+        return await resend.emails.send(mailOptions);
+    } catch (error) {
+      console.log("Failed to send invoice email:", error);
+        console.error("Failed to send invoice email:", error);
+        throw error;
+    }
+  
 }
 
 async function sendDeliveryEmail({ customerName, customerEmail, invoiceNumber, supportEmail }) {
@@ -149,8 +157,8 @@ async function sendDeliveryEmail({ customerName, customerEmail, invoiceNumber, s
     </div>
   `;
 
-  return await resend.emails({
-    from: process.env.GMAIL_USER,
+  return await resend.emails.send({
+    from: `Amudhootru <${process.env.GMAIL_USER}>`,
     to: customerEmail,
     subject: `Your order #${invoiceNumber} has been delivered 🎉`,
     html
