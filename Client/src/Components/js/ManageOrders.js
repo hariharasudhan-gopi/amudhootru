@@ -120,7 +120,26 @@ export default function ManageOrders(props) {
                                     <td className="orderDateCell">
                                         {new Date(order.dateoforder).toLocaleDateString()}
                                     </td>
-                                    <td className="deliveryAddressCell">{order.deliveryaddress || '—'}</td>
+                                    <td className="deliveryAddressCell">
+                                        {(() => {
+                                            try {
+                                                const a = typeof order.deliveryaddress === 'string'
+                                                    ? JSON.parse(order.deliveryaddress)
+                                                    : order.deliveryaddress;
+                                                if (!a) return '—';
+                                                return (
+                                                    <span>
+                                                        {a.dno && a.street ? <>{a.dno}, {a.street}<br /></> : null}
+                                                        {a.city && a.zip ? <>{a.city}, {a.zip}<br /></> : null}
+                                                        {a.state && a.country ? <>{a.state}, {a.country}<br /></> : null}
+                                                        {a.contact ? <>{a.contact}</> : null}
+                                                    </span>
+                                                );
+                                            } catch {
+                                                return order.deliveryaddress || '—';
+                                            }
+                                        })()}
+                                    </td>
                                     <td>
                                         <ul className="manageProductList">
                                             {(order.products || []).map(p => (
