@@ -1,26 +1,18 @@
 const nodemailer = require("nodemailer");
-// const dns = require("dns");
+const { Resend } = require("resend");
 require("dotenv").config();
 
-// dns.setDefaultResultOrder("ipv4first");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  service: "gmail",
   port: 587,
   secure: false,
   requireTLS: true,
-  family: 4,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD
   }
-});
-transporter.verify((error, success) => {
-    if (error) {
-        console.error("SMTP ERROR:", error);
-    } else {
-        console.log("SMTP connection successful");
-    }
 });
 
 async function sendInvoiceEmail(order) {
@@ -130,7 +122,7 @@ async function sendInvoiceEmail(order) {
     html: html
   };
 
-  return await transporter.sendMail(mailOptions);
+  return await resend.emails(mailOptions);
 }
 
 async function sendDeliveryEmail({ customerName, customerEmail, invoiceNumber, supportEmail }) {
@@ -157,7 +149,7 @@ async function sendDeliveryEmail({ customerName, customerEmail, invoiceNumber, s
     </div>
   `;
 
-  return await transporter.sendMail({
+  return await resend.emails({
     from: process.env.GMAIL_USER,
     to: customerEmail,
     subject: `Your order #${invoiceNumber} has been delivered 🎉`,
