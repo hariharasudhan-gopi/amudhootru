@@ -67,6 +67,24 @@
 .inputErrorBorder{
     border: 1px solid #f4a0a0 !important;
 }
+.passwordWrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+.passwordWrapper input {
+    padding-right: 34px;
+}
+.pwToggleIcon {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    color: #555;
+    font-size: 0.9rem;
+}
+.pwToggleIcon:hover {
+    color: #185e87;
+}
 
 @media (max-width: 768px) {
     .loginContainer{
