@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 export default function SignUp(props) {
     const navigate = useNavigate();
     const [errors, setErrors] = useState({});
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
 
     function validate(usermail, phone, password, confirmPassword) {
         const errs = {};
@@ -98,13 +100,19 @@ export default function SignUp(props) {
                 <br />
                 <label className="signUpLabel">
                     Password
-                    <input type="password" name="password" className={`userPassword${errors.password ? ' inputErrorBorder' : ''}`} placeholder="Enter your password" />
+                    <span className="passwordWrapper">
+                        <input type={showPassword ? 'text' : 'password'} name="password" className={`userPassword${errors.password ? ' inputErrorBorder' : ''}`} placeholder="Enter your password" />
+                        <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'} pwToggleIcon`} onClick={() => setShowPassword(v => !v)} />
+                    </span>
                     {errors.password && <span className="inputError">{errors.password}</span>}
                 </label>
                 <br />
                 <label className="signUpLabel">
                     Confirm Password
-                    <input type="password" name="confirmPassword" className={`userConfirmPassword${errors.confirmPassword ? ' inputErrorBorder' : ''}`} placeholder="Confirm your password" />
+                    <span className="passwordWrapper">
+                        <input type={showConfirm ? 'text' : 'password'} name="confirmPassword" className={`userConfirmPassword${errors.confirmPassword ? ' inputErrorBorder' : ''}`} placeholder="Confirm your password" />
+                        <i className={`fa-solid ${showConfirm ? 'fa-eye-slash' : 'fa-eye'} pwToggleIcon`} onClick={() => setShowConfirm(v => !v)} />
+                    </span>
                     {errors.confirmPassword && <span className="inputError">{errors.confirmPassword}</span>}
                 </label>
                 <br />
