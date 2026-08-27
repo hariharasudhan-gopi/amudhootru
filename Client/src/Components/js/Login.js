@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 export default function Login(props) {
   const navigate = useNavigate();
   const [emailError, setEmailError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   async function userLogin(event){
       // Prevent the default form submission behavior
       event.preventDefault();
@@ -66,7 +67,10 @@ export default function Login(props) {
             <br />
             <label className="loginLabel">
             Password
-            <input type="password" className="password" name="password" placeholder="Enter your password" />
+            <span className="passwordWrapper">
+                <input type={showPassword ? 'text' : 'password'} className="password" name="password" placeholder="Enter your password" />
+                <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'} pwToggleIcon`} onClick={() => setShowPassword(v => !v)} />
+            </span>
             </label>
             <br />
             <button className="loginButton" type="submit" onClick={userLogin}>Login</button>
