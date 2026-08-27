@@ -71,16 +71,20 @@
     position: relative;
     display: inline-flex;
     align-items: center;
+    width: 312px;
 }
 .passwordWrapper input {
+    width: 100%;
     padding-right: 34px;
+    box-sizing: border-box;
 }
 .pwToggleIcon {
     position: absolute;
     right: 10px;
     cursor: pointer;
-    color: #555;
+    color: #888;
     font-size: 0.9rem;
+    z-index: 1;
 }
 .pwToggleIcon:hover {
     color: #185e87;
