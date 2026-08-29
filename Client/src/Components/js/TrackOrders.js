@@ -24,31 +24,30 @@ export function TrackOrders(props) {
     const [orders, setOrders] = useState([]);
 
     useEffect(() => {
-        fetchOrders();
-    }, []);
+        const fetchOrders = async () => {
+            try {
+                const response = await fetch(
+                    `${process.env.REACT_APP_API_URL}/orders/placed?userId=${props.userDetails.userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                    }
+                );
 
-    const fetchOrders = async () => {
-        try {
-            const response = await fetch(
-                `${process.env.REACT_APP_API_URL}/orders/placed?userId=${props.userDetails.userId}`,{
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
+                if (!response.ok) {
+                    const msg = await response.text();
+                    throw new Error(msg);
                 }
-                }
-            );
 
-            if (!response.ok) {
-                const msg = await response.text();
-                throw new Error(msg);
+                const data = await response.json();
+                setOrders(data);
+            } catch (error) {
+                console.error('Error fetching orders:', error);
             }
-
-            const data = await response.json();
-            setOrders(data);
-        } catch (error) {
-            console.error('Error fetching orders:', error);
-        }
-    }
+        };
+        fetchOrders();
+    }, [props.userDetails.userId]);
 
     const navigate = useNavigate();
 

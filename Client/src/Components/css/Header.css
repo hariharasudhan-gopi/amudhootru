@@ -24,6 +24,16 @@
     display: flex;
     align-items: center;
 }
+.cartBadge {
+    position: absolute;
+    top: 14px;
+    right: -4px;
+    width: 9px;
+    height: 9px;
+    background-color: #e53935;
+    border-radius: 50%;
+    border: 1.5px solid #185e87;
+}
 .cartToast {
     position: absolute;
     top: calc(100% + 10px);

@@ -69,7 +69,11 @@ export default function BuyNow(props) {
             setProducts(prev => {
                 const removed = prev.find(p => p.code === productCode);
                 if (removed) setTotalPrice(t => t - removed.price * (removed.quantity || 1));
-                return prev.filter(p => p.code !== productCode);
+                const updated = prev.filter(p => p.code !== productCode);
+                if (updated.length === 0 && props.setUserDetails) {
+                    props.setUserDetails(u => ({ ...u, isCartItemsAvailable: false }));
+                }
+                return updated;
             });
         } catch (err) {
             alert('Failed to remove item: ' + err.message);

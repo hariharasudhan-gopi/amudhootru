@@ -53,6 +53,7 @@ export default function Header(props) {
                 {props.isLoggedIn && (
                     <span className="cartIconWrapper">
                         <i className="cartIcon fa-solid fa-cart-shopping cart-icon" onClick={goToCart}></i>
+                        {props.userDetails?.isCartItemsAvailable && <span className="cartBadge"></span>}
                         {props.cartToast && (
                             <span className="cartToast">
                                 <i className="fa-solid fa-circle-check cartToastCheck"></i>

@@ -1,8 +1,17 @@
+import { useNavigate } from 'react-router-dom';
+
 export default function Product(props) {
+  const navigate = useNavigate();
+
   function addToCart() {
+    if (!props.isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+
     var productCode = props.code;
     var productName = props.name;
-    var userId = props.userDetails && props.userDetails.userId; // Assuming you have a user ID to associate with the cart item
+    var userId = props.userDetails && props.userDetails.userId;
 
     if (!userId) {
       console.error('User ID is not available. Cannot add to cart.');
