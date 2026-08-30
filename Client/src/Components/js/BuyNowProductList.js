@@ -41,7 +41,9 @@ export default function BuyNowProductList(props) {
                                 <p>Quantity:</p>
                                 <i className="fa-solid fa-plus" onClick={increaseQuantity}></i>
                                 <p>{productQuantity}</p>
-                                <i className="fa-solid fa-minus" onClick={decreaseQuantity}></i>
+                                <i className="fa-solid fa-minus"
+                                        onClick={decreaseQuantity}
+                                        style={productQuantity <= 1 ? { opacity: 0.35, cursor: 'not-allowed', pointerEvents: 'none' } : {}}></i>
                             </span>    
                         </span>
                         <span className="productImage">
