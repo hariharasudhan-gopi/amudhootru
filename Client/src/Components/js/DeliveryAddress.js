@@ -4,7 +4,23 @@ import { useState } from "react";
 
 export default function DeliveryAddress(props) {
     const [showAddNewAddressForm, setShowAddNewAddressForm] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
     const deliveryAddress = props.userDetails && props.userDetails.deliveryAddress;
+
+    function validateAddress({ houseFlat, street, city, state, zip, country, contact }) {
+        const errs = {};
+        if (!houseFlat.trim()) errs.houseFlat = 'House/Flat No is required.';
+        if (!street.trim()) errs.street = 'Street is required.';
+        if (!city.trim()) errs.city = 'City is required.';
+        if (!state.trim()) errs.state = 'State is required.';
+        if (!zip.trim()) errs.zip = 'Zip is required.';
+        else if (!/^\d{4,10}$/.test(zip.trim())) errs.zip = 'Enter a valid zip code (4–10 digits).';
+        if (!country.trim()) errs.country = 'Country is required.';
+        if (!contact.trim()) errs.contact = 'Contact is required.';
+        else if (!/^\+?[\d\s\-]{7,15}$/.test(contact.trim())) errs.contact = 'Enter a valid contact number.';
+        return errs;
+    }
+
     function addAddress(event) {
         event.preventDefault();
         event.stopPropagation();
@@ -17,8 +33,15 @@ export default function DeliveryAddress(props) {
         const country = form.querySelector('.addressCountry').value;
         const contact = form.querySelector('.addressContact').value;
 
+        const errs = validateAddress({ houseFlat, street, city, state, zip, country, contact });
+        if (Object.keys(errs).length > 0) {
+            setFormErrors(errs);
+            return;
+        }
+        setFormErrors({});
+
         const newAddress = {
-            dno : houseFlat,
+            dno: houseFlat,
             street,
             city,
             state,
@@ -26,9 +49,6 @@ export default function DeliveryAddress(props) {
             country,
             contact
         };
-
-        // Here you can send the newAddress to your server or update the state as needed
-        console.log("New Address:", newAddress);
 
         try {
             const response = fetch(
@@ -93,24 +113,31 @@ export default function DeliveryAddress(props) {
                     <span className="addressForm">
                         <label className="addressLabel">House/Flat No:
                             <input type="text" className="addressHouseFlat" name="houseFlat" placeholder="Enter house/flat number" />
+                            {formErrors.houseFlat && <span className="addressError">{formErrors.houseFlat}</span>}
                         </label>
                         <label className="addressLabel">Street:
                             <input type="text" className="addressStreet" name="street" placeholder="Enter street" />
+                            {formErrors.street && <span className="addressError">{formErrors.street}</span>}
                         </label>
                         <label className="addressLabel">City:
                             <input type="text" className="addressCity" name="city" placeholder="Enter city" />
+                            {formErrors.city && <span className="addressError">{formErrors.city}</span>}
                         </label>
                         <label className="addressLabel">State:
                             <input type="text" className="addressState" name="state" placeholder="Enter state" />
+                            {formErrors.state && <span className="addressError">{formErrors.state}</span>}
                         </label>
                         <label className="addressLabel">Zip:
                             <input type="text" className="addressZip" name="zip" placeholder="Enter zip code" />
+                            {formErrors.zip && <span className="addressError">{formErrors.zip}</span>}
                         </label>
                         <label className="addressLabel">Country:
                             <input type="text" className="addressCountry" name="country" placeholder="Enter country" />
+                            {formErrors.country && <span className="addressError">{formErrors.country}</span>}
                         </label>
                         <label className="addressLabel">Contact:
                             <input type="text" className="addressContact" name="contact" placeholder="Enter contact number" />
+                            {formErrors.contact && <span className="addressError">{formErrors.contact}</span>}
                         </label>
                     </span>
                     <button type="submit" className="addressButton" onClick={addAddress}>Use This Address</button>
