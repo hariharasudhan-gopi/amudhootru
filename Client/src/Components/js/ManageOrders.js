@@ -32,7 +32,8 @@ export default function ManageOrders(props) {
 
             const res = await fetch(`${process.env.REACT_APP_API_URL}/orders/all?${params.toString()}`);
             if (!res.ok) throw new Error(await res.text());
-            setOrders(await res.json());
+            const data = await res.json();
+            setOrders(data.sort((a, b) => new Date(b.dateoforder) - new Date(a.dateoforder)));
         } catch (err) {
             console.error('Error fetching orders:', err);
         } finally {
