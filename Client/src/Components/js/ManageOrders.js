@@ -144,7 +144,7 @@ export default function ManageOrders(props) {
                                     <td>
                                         <ul className="manageProductList">
                                             {(order.products || []).map(p => (
-                                                <li key={p.productcode}>{p.productname} × {p.quantity}</li>
+                                                <li key={p.productcode}>{p.productname} × {p.quantity}{p.unit ? ' ' + p.unit : ''}</li>
                                             ))}
                                         </ul>
                                     </td>
