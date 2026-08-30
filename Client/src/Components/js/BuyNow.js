@@ -213,7 +213,7 @@ export default function BuyNow(props) {
                                 <h4>Address Details</h4>
                                 <p className="changeAddress" onClick={changeAddress}>Change Address</p>
                             </span>
-                            <p>Address: {deliveryAddress ? `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.state}, ${deliveryAddress.zip}, ${deliveryAddress.country}` : 'N/A'}</p>
+                            <p>Address: {deliveryAddress ? `${deliveryAddress.dno}, ${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.state}, ${deliveryAddress.zip}, ${deliveryAddress.country}` : 'N/A'}</p>
                             <p>Phone: {deliveryAddress && deliveryAddress.contact ? deliveryAddress.contact : 'N/A'}</p>
                             <p>Email: {props.userDetails && props.userDetails.email ? props.userDetails.email : 'N/A'}</p>
                         </span>
