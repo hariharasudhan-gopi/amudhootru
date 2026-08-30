@@ -41,7 +41,7 @@ export function TrackOrders(props) {
                 }
 
                 const data = await response.json();
-                setOrders(data);
+                setOrders(data.sort((a, b) => new Date(b.dateoforder) - new Date(a.dateoforder)));
             } catch (error) {
                 console.error('Error fetching orders:', error);
             }
