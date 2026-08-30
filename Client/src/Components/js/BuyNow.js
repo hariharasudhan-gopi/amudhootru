@@ -138,7 +138,7 @@ export default function BuyNow(props) {
                 amount,
                 currency,
                 order_id: orderId,
-                prefill: { email: props.userDetails.email },
+                prefill: { email: props.userDetails.email, contact: '+91' + props.userDetails.phone },
                 handler: async function(response) {
                     // Step 3: Verify signature and place order
                     try {
