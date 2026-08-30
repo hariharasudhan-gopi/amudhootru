@@ -9,7 +9,7 @@ export default function AddProducts() {
     const [success, setSuccess] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
     // fields for update mode pre-fill
-    const [updateFields, setUpdateFields] = useState({ name: '', price: '', description: '', quantity: '', img_src: '' });
+    const [updateFields, setUpdateFields] = useState({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '' });
     const [lookupCode, setLookupCode] = useState('');
     const [lookupError, setLookupError] = useState('');
 
@@ -54,6 +54,7 @@ export default function AddProducts() {
                 price: p.price || '',
                 description: p.description || '',
                 quantity: p.availablequantity ?? '',
+                unit: p.unit || '',
                 img_src: p.img_src || ''
             });
             setImagePreview(p.img_src || null);
@@ -67,7 +68,7 @@ export default function AddProducts() {
         setErrors({});
         setSuccess('');
         setImagePreview(null);
-        setUpdateFields({ name: '', price: '', description: '', quantity: '', img_src: '' });
+        setUpdateFields({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '' });
         setLookupCode('');
         setLookupError('');
     }
@@ -80,6 +81,7 @@ export default function AddProducts() {
         const price = isUpdate ? event.target.uprice.value : event.target.price.value;
         const description = isUpdate ? event.target.udescription.value : event.target.description.value;
         const quantity = event.target.quantity.value;
+        const unit = event.target.unit.value;
 
         const errs = validate(code, name, price, description, quantity, isUpdate);
         if (Object.keys(errs).length > 0) {
@@ -92,8 +94,8 @@ export default function AddProducts() {
         try {
             const url = isUpdate ? `${process.env.REACT_APP_API_URL}/products/update` : `${process.env.REACT_APP_API_URL}/products/add`;
             const body = isUpdate
-                ? { code, name, price: Number(price), description, quantity: Number(quantity), img_src: imagePreview }
-                : { code, name, price: Number(price), description, quantity: Number(quantity), img_src: imagePreview };
+                ? { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview }
+                : { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview };
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -173,6 +175,20 @@ export default function AddProducts() {
                         onChange={mode === 'update' ? e => setUpdateFields(f => ({...f, quantity: e.target.value})) : undefined}
                         className={`prodQuantity${errors.quantity ? ' inputErrorBorder' : ''}`} placeholder="Enter available quantity" />
                     {errors.quantity && <span className="inputError">{errors.quantity}</span>}
+                </label>
+                <label className="addProductsLabel">
+                    Unit
+                    <select name="unit"
+                        value={mode === 'update' ? updateFields.unit : undefined}
+                        onChange={mode === 'update' ? e => setUpdateFields(f => ({...f, unit: e.target.value})) : undefined}
+                        className="prodUnit">
+                        <option value="">— None —</option>
+                        <option value="Kg">Kg</option>
+                        <option value="g">g (grams)</option>
+                        <option value="L">L (litres)</option>
+                        <option value="mL">mL</option>
+                        <option value="pcs">pcs (pieces)</option>
+                    </select>
                 </label>
                 <label className="addProductsLabel">
                     Description
