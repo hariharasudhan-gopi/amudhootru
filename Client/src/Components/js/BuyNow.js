@@ -206,7 +206,7 @@ export default function BuyNow(props) {
                     <span className="invoiceDetails">
                         <span>
                             <h4>Invoice Details</h4>
-                            <p>Total Amount: ${totalPrice}</p>
+                            <p>Total Amount: ₹{totalPrice}</p>
                         </span>
                         <span>
                             <span className="addressSection">
