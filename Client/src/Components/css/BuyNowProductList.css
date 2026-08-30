@@ -18,6 +18,11 @@
     align-items: center;
     gap: 10px;
 }
+.productSubtotal {
+    font-size: 0.82rem;
+    color: #888;
+    margin: 2px 0 0;
+}
 .buyNowProductListContainer p, .buyNowProductListContainer h3{
     margin: auto;
 }
