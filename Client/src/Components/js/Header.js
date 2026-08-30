@@ -42,6 +42,7 @@ export default function Header(props) {
             <h1 className="header_title">Amudhootru</h1>
             <img src={Logo} alt="Amudhootru logo" className="header_logo" />
             <span className="header_actions">
+                <p className="header_loginButton" onClick={() => navigate('/about')}>About Us</p>
                 {props.isLoggedIn && <p className="header_loginButton" onClick={() => navigate('/track-orders')}>Track Orders</p>}
                 {props.isLoggedIn && props.userDetails?.isAdminUser && (
                     <p className="header_loginButton" onClick={() => navigate('/add-products')}>Edit Products</p>
