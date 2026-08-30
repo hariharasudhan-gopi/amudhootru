@@ -11,6 +11,7 @@ import BuyNow from './Components/js/BuyNow.js';
 import Header from './Components/js/Header.js';
 import AddProducts from './Components/js/AddProducts.js';
 import ManageOrders from './Components/js/ManageOrders.js';
+import About from './Components/js/About.js';
 function App() {
 
   const [userDetails, setUserDetails] = useState(null);
@@ -32,6 +33,7 @@ function App() {
           <Route path="/track-orders" element={<TrackOrders userDetails={userDetails} />} />
           <Route path="/add-products" element={<AddProducts userDetails={userDetails} setUserDetails={setUserDetails} />} />
           <Route path="/manage-orders" element={<ManageOrders userDetails={userDetails} />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </BrowserRouter>  
       
