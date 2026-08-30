@@ -1,11 +1,28 @@
 import "../css/DeliveryAddress.css";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function DeliveryAddress(props) {
     const [showAddNewAddressForm, setShowAddNewAddressForm] = useState(false);
     const [formErrors, setFormErrors] = useState({});
     const deliveryAddress = props.userDetails && props.userDetails.deliveryAddress;
+
+    const profileAddr = props.userDetails?.address?.dno
+        ? { ...props.userDetails.address, contact: props.userDetails.address.contact || props.userDetails.phone, _isProfileAddress: true }
+        : null;
+
+    // combined list: profile address first, then saved delivery addresses
+    const allAddresses = [
+        ...(profileAddr ? [profileAddr] : []),
+        ...(deliveryAddress || []),
+    ];
+
+    // auto-select profile address as default when nothing is selected
+    useEffect(() => {
+        if (!props.deliveryAddress && profileAddr) {
+            props.setDeliveryAddress(profileAddr);
+        }
+    }, []);
 
     function validateAddress({ houseFlat, street, city, state, zip, country, contact }) {
         const errs = {};
@@ -90,14 +107,17 @@ export default function DeliveryAddress(props) {
                 className="fa-solid fa-xmark close-icon"
                 onClick={() => props.setShowDeliveryAddress(false)}
             ></i>
-            {deliveryAddress && deliveryAddress.length && !showAddNewAddressForm ?
+            {allAddresses.length > 0 && !showAddNewAddressForm ?
             <span className="deliveryAddressDetails">
-                {deliveryAddress && deliveryAddress.map((address, index) => (
+                {allAddresses.map((address, index) => (
                     <div key={index} className="deliveryAddressItem">
                     <div className="addressRadioWrap">
-                        <input type="radio" name="deliveryAddress" value={index} checked={props.deliveryAddress === address} onChange={() => props.setDeliveryAddress(address)} />
+                        <input type="radio" name="deliveryAddress" value={index}
+                            checked={props.deliveryAddress === address}
+                            onChange={() => props.setDeliveryAddress(address)} />
                     </div>
-                    <div key={index} className="addressCardText">
+                    <div className="addressCardText">
+                        {address._isProfileAddress && <span className="profileAddressTag">Profile Address</span>}
                         <p>{address ? `${address.dno}, ${address.street}, ${address.city},` : 'N/A'}</p>
                         <p>{address ? `${address.state}, ${address.country}, ${address.zip}` : 'N/A'}</p>
                         <p>Contact: {address && address.contact ? address.contact : 'N/A'}</p>
