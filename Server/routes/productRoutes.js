@@ -132,7 +132,7 @@ router.get('/products/getcart', async function(req, res) {
 });
 
 router.post('/products/add', async function(req, res) {
-    const { code, name, price, description, quantity, img_src } = req.body;
+    const { code, name, price, description, quantity, img_src, unit } = req.body;
 
     if (!code || !name || !price || !description || quantity === undefined) {
         return res.status(400).send('Missing required product fields.');
@@ -148,8 +148,8 @@ router.post('/products/add', async function(req, res) {
         }
 
         await pool.query(
-            'INSERT INTO productdetails (code, name, price, description, availablequantity, img_src) VALUES ($1, $2, $3, $4, $5, $6)',
-            [code, name, price, description, quantity, img_src || null]
+            'INSERT INTO productdetails (code, name, price, description, availablequantity, img_src, unit) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [code, name, price, description, quantity, img_src || null, unit || null]
         );
 
         res.status(201).json({ message: 'Product added successfully.' });
@@ -176,7 +176,7 @@ router.get('/products/:code', async function(req, res) {
 });
 
 router.post('/products/update', async function(req, res) {
-    const { code, name, price, description, quantity, img_src } = req.body;
+    const { code, name, price, description, quantity, img_src, unit } = req.body;
 
     if (!code) return res.status(400).send('Product code is required.');
 
@@ -194,10 +194,11 @@ router.post('/products/update', async function(req, res) {
                  price = COALESCE($3, price),
                  description = COALESCE($4, description),
                  availablequantity = COALESCE($5, availablequantity),
-                 img_src = COALESCE($6, img_src)
+                 img_src = COALESCE($6, img_src),
+                 unit = COALESCE($7, unit)
              WHERE code = $1`,
             [code, name || null, price || null, description || null,
-             quantity !== undefined ? quantity : null, img_src || null]
+             quantity !== undefined ? quantity : null, img_src || null, unit || null]
         );
 
         res.status(200).json({ message: 'Product updated successfully.' });
