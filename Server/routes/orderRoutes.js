@@ -205,7 +205,8 @@ router.get('/orders/placed', async function(req, res) {
                 return {
                     ...product,
                     productname: productResult.rows[0].name,
-                    price: productResult.rows[0].price
+                    price: productResult.rows[0].price,
+                    unit: productResult.rows[0].unit || null
                 };
             });
 
@@ -266,13 +267,14 @@ router.get('/orders/all', async function(req, res) {
             );
             const products = await Promise.all(detailsResult.rows.map(async (item) => {
                 const prodResult = await pool.query(
-                    'SELECT name, price FROM productdetails WHERE code = $1',
+                    'SELECT name, price, unit FROM productdetails WHERE code = $1',
                     [item.productcode]
                 );
                 return {
                     ...item,
                     productname: prodResult.rows[0]?.name ?? item.productcode,
-                    price: prodResult.rows[0]?.price ?? 0
+                    price: prodResult.rows[0]?.price ?? 0,
+                    unit: prodResult.rows[0]?.unit || null
                 };
             }));
             return { ...order, products };
