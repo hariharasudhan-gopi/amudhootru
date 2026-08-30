@@ -239,8 +239,11 @@ export default function ProfileInfo(props) {
       </span>
       }
     </div>
-
-      {/* crop modal shown after image is selected */}
+      <div className="profileLogoutFooter">
+        <button className="profileLogoutBtn" onClick={props.onLogout}>
+          <i className="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>}
       {cropSrc && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
           <p style={{ color: '#fff', margin: 0 }}>Drag to crop, then click Confirm</p>
