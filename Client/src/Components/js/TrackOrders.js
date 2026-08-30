@@ -87,7 +87,7 @@ export function TrackOrders(props) {
                             {order.products.map(p => (
                                 <tr key={p.productcode}>
                                     <td>{p.productname}</td>
-                                    <td>{p.quantity}</td>
+                                    <td>{p.quantity}{p.unit ? ' ' + p.unit : ''}</td>
                                 </tr>
                             ))}
                         </tbody>
