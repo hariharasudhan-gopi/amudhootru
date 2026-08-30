@@ -164,6 +164,11 @@
     border: 1px solid #c1ebf7;
     background-color: white;
 }
+.addressError {
+    color: #c0392b;
+    font-size: 0.75rem;
+    margin-top: -2px;
+}
 
 .addressButton{
     height: 34px;
