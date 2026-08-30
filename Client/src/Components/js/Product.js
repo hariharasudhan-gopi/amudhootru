@@ -58,7 +58,7 @@ export default function Product(props) {
     <span className={`product_container product_${props.id}${unavailable ? ' product_unavailable' : ''}`}>
       <h2>{props.name}{props.userDetails?.isAdminUser && <span className="productCodeBadge"> ({props.code})</span>}</h2>
       {props.img_src && <img src={props.img_src} alt={props.name} className="product_image" width={props.dimensions?.width ?? 200} height={props.dimensions?.height ?? 200} />}
-      <p>Price: ₹{props.price}</p>
+      <p>Price: ₹{props.price}{props.unit ? '/' + props.unit : ''}</p>
       <p>{props.description}</p>
       {unavailable && <p className="unavailableText">Temporarily Unavailable</p>}
       <span className="product_actions">
