@@ -35,12 +35,13 @@ export default function BuyNowProductList(props) {
                     <span className="productDetails">
                         <span className="priceDetails">
                             <span className="productPrice">
-                                <p>Price: ₹{productPrice}</p>
+                                <p>₹{props.products[0].price}{props.products[0].unit ? '/' + props.products[0].unit : ''}</p>
+                                {productQuantity > 1 && <p className="productSubtotal">Subtotal: ₹{productPrice}</p>}
                             </span>
                             <span className="quantityInfo">
                                 <p>Quantity:</p>
                                 <i className="fa-solid fa-plus" onClick={increaseQuantity}></i>
-                                <p>{productQuantity}</p>
+                                <p>{productQuantity}{props.products[0].unit ? ' ' + props.products[0].unit : ''}</p>
                                 <i className="fa-solid fa-minus"
                                         onClick={decreaseQuantity}
                                         style={productQuantity <= 1 ? { opacity: 0.35, cursor: 'not-allowed', pointerEvents: 'none' } : {}}></i>
