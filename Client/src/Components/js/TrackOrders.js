@@ -66,6 +66,7 @@ export function TrackOrders(props) {
               <th>Order ID</th>
               <th>Date of Order</th>
               <th>Product</th>
+              <th>Delivery Address</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -91,6 +92,26 @@ export function TrackOrders(props) {
                             ))}
                         </tbody>
                     </table>
+                </td>
+                <td className="deliveryAddressCell">
+                    {(() => {
+                        try {
+                            const a = typeof order.deliveryaddress === 'string'
+                                ? JSON.parse(order.deliveryaddress)
+                                : order.deliveryaddress;
+                            if (!a) return '—';
+                            return (
+                                <span>
+                                    {a.dno && a.street ? <>{a.dno}, {a.street}<br /></> : null}
+                                    {a.city && a.zip ? <>{a.city}, {a.zip}<br /></> : null}
+                                    {a.state && a.country ? <>{a.state}, {a.country}<br /></> : null}
+                                    {a.contact ? <>{a.contact}</> : null}
+                                </span>
+                            );
+                        } catch {
+                            return order.deliveryaddress || '—';
+                        }
+                    })()}
                 </td>
                 <td><StatusBadge status={order.deliverystatus} /></td>
               </tr>
