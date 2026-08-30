@@ -21,6 +21,7 @@ export default function Header(props) {
     function userLogout() {
         props.setIsLoggedIn(false);
         props.setUserDetails(null);
+        setIsProfileOpen(false);
         navigate('/');
     }
     function profileImageClick() {
@@ -50,7 +51,7 @@ export default function Header(props) {
                 {props.isLoggedIn && props.userDetails?.isAdminUser && (
                     <p className="header_loginButton" onClick={() => navigate('/manage-orders')}>Manage Orders</p>
                 )}
-                {!props.isLoggedIn ? <button className="header_loginButton" onClick={userLogin}>Login</button> : <button className="header_loginButton" onClick={userLogout}>Logout</button>}
+                {!props.isLoggedIn && <button className="header_loginButton" onClick={userLogin}>Login</button>}
                 {props.isLoggedIn && (
                     <span className="cartIconWrapper">
                         <i className="cartIcon fa-solid fa-cart-shopping cart-icon" onClick={goToCart}></i>
@@ -70,7 +71,7 @@ export default function Header(props) {
                     onClick={profileImageClick}
                 />
             </span>
-            {isProfileOpen && <ProfileInfo userDetails={props.userDetails} setIsProfileOpen={setIsProfileOpen} setUserDetails={props.setUserDetails} />}
+            {isProfileOpen && <ProfileInfo userDetails={props.userDetails} setIsProfileOpen={setIsProfileOpen} setUserDetails={props.setUserDetails} onLogout={userLogout} />}
         </div>
     );
 }
