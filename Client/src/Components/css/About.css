@@ -1,0 +1,350 @@
+/* ── Page wrapper ── */
+.about_page {
+    font-family: 'Segoe UI', sans-serif;
+    color: #2c2c2c;
+}
+
+/* ── Hero ── */
+.about_hero {
+    position: relative;
+    background-color: #f5f2eb;
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+/* right-half farm image with soft left-edge fade */
+.about_hero::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 52%;
+    height: 100%;
+    background-image: var(--farm-bg);
+    background-size: cover;
+    background-position: center;
+    mask-image: linear-gradient(to right, transparent 0%, black 22%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 22%);
+    z-index: 0;
+}
+.about_hero_overlay {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    padding: 60px 6%;
+}
+.about_hero_text {
+    flex: 0 0 auto;
+    max-width: 480px;
+}
+.about_hero_text h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #2c5016;
+    margin: 0 0 8px;
+}
+.about_hero_divider {
+    margin: 8px 0 14px;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 300px;
+}
+.about_hero_divider::before,
+.about_hero_divider::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: #3d6b20;
+    border-radius: 2px;
+}
+.about_hero_tagline {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #3d6b20;
+    margin: 0 0 16px;
+}
+.about_hero_text p {
+    font-size: 0.97rem;
+    line-height: 1.7;
+    color: #444;
+    max-width: 420px;
+    margin: 0 0 10px;
+}
+/* remove the old right-panel styles */
+.about_hero_img_wrap,
+.about_hero_img,
+.about_hero_img::before { display: none; }
+
+/* ── Shared leaf divider ── */
+.about_leaf_divider {
+    font-size: 1.2rem;
+    margin: 6px 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.about_leaf_divider::before,
+.about_leaf_divider::after {
+    content: '';
+    width: 60px;
+    height: 2px;
+    background: #3d6b20;
+    border-radius: 2px;
+}
+.about_leaf_white::before,
+.about_leaf_white::after {
+    background: #8fcc50;
+}
+
+/* ── From Our Farms ── */
+.about_farms {
+    background: #fff;
+    padding: 60px 6%;
+    text-align: center;
+}
+.about_farms h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2c5016;
+    margin-bottom: 4px;
+}
+.about_farms_desc {
+    max-width: 680px;
+    margin: 0 auto 40px;
+    color: #555;
+    line-height: 1.7;
+    font-size: 0.96rem;
+}
+.about_features {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+.about_feature_card {
+    width: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.about_feature_icon_wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid #d4e8c2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f4faf0;
+}
+.about_feature_icon {
+    font-size: 1.5rem;
+    color: #3d6b20;
+}
+.about_feature_label {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #2c5016;
+    margin: 0;
+    text-align: center;
+}
+.about_feature_sub {
+    font-size: 0.78rem;
+    color: #777;
+    margin: 0;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* ── Our Products ── */
+.about_products {
+    background: #f8f5f0;
+    padding: 60px 6%;
+    text-align: center;
+}
+.about_products h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2c5016;
+    margin-bottom: 4px;
+}
+.about_products_desc {
+    max-width: 600px;
+    margin: 0 auto 36px;
+    color: #555;
+    font-size: 0.96rem;
+    line-height: 1.6;
+}
+.about_products_grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 36px;
+}
+.about_product_card {
+    background: #fff;
+    border-radius: 14px;
+    width: 190px;
+    padding: 20px 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.about_product_img_wrap {
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.about_product_img {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+.about_product_img_placeholder {
+    width: 110px;
+    height: 110px;
+    background: #fdf3dc;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.about_honey_icon {
+    font-size: 2.8rem;
+    color: #c8850a;
+}
+.about_product_name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #2c5016;
+    margin: 0;
+}
+.about_product_desc {
+    font-size: 0.78rem;
+    color: #666;
+    margin: 0;
+    line-height: 1.45;
+    text-align: center;
+}
+.about_shop_btn {
+    background: #3d6b20;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 36px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.about_shop_btn:hover {
+    background: #2c5016;
+}
+
+/* ── Mission & Vision ── */
+.about_mv {
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+.about_mv_overlay {
+    background: rgba(15, 35, 5, 0.82);
+    padding: 60px 6%;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+.about_mv_quote {
+    flex: 1;
+    min-width: 240px;
+}
+.about_mv_italic {
+    font-style: italic;
+    font-size: 1.25rem;
+    color: #d4e8c2;
+    line-height: 1.6;
+    font-weight: 500;
+}
+.about_mv_cards {
+    flex: 2;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+.about_mv_card {
+    flex: 1;
+    min-width: 200px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 28px 24px;
+    text-align: center;
+    color: #e8f0e0;
+}
+.about_mv_card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #b8d98a;
+    margin: 0 0 12px;
+}
+.about_mv_icon {
+    font-size: 2rem;
+    color: #8fcc50;
+    margin-bottom: 14px;
+    display: block;
+}
+.about_mv_card p {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: #cde0b8;
+    margin: 0;
+}
+
+/* ── Footer bar ── */
+.about_footer_bar {
+    background: #1a2e0d;
+    color: #c8daa8;
+    text-align: center;
+    padding: 18px 20px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.about_leaf_icon {
+    font-size: 1.1rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .about_hero::after {
+        width: 100%;
+        mask-image: linear-gradient(to bottom, transparent 0%, black 30%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%);
+    }
+    .about_hero_overlay {
+        background: rgba(245, 242, 235, 0.82);
+        min-height: 360px;
+    }
+    .about_mv_overlay { flex-direction: column; }
+    .about_mv_quote { text-align: center; }
+    .about_products_grid { gap: 16px; }
+    .about_product_card { width: 155px; }
+}
