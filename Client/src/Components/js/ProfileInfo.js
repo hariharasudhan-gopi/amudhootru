@@ -82,7 +82,6 @@ export default function ProfileInfo(props) {
     setIsEditing(false);
   }
   function saveProfileInfo(event){
-    debugger;
     event.preventDefault();
     event.stopPropagation();
     var usermail = props.userDetails && props.userDetails.email;
@@ -117,6 +116,7 @@ export default function ProfileInfo(props) {
           headers: {
             'Content-Type': 'application/json'
           },
+          credentials: 'include',
           body: JSON.stringify(userInfo)
         }
       );
