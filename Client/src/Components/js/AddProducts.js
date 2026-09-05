@@ -42,7 +42,9 @@ export default function AddProducts() {
         }
         setLookupError('');
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}/products/${encodeURIComponent(lookupCode.trim())}`);
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/products/${encodeURIComponent(lookupCode.trim())}`, {
+                credentials: 'include'
+            });
             if (!res.ok) {
                 const msg = await res.text();
                 throw new Error(msg);
@@ -100,6 +102,7 @@ export default function AddProducts() {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(body)
             });
 
