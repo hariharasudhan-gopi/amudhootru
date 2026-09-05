@@ -30,7 +30,9 @@ export default function ManageOrders(props) {
             if (filterParams.dateFrom) params.append('dateFrom', filterParams.dateFrom);
             if (filterParams.dateTo) params.append('dateTo', filterParams.dateTo);
 
-            const res = await fetch(`${process.env.REACT_APP_API_URL}/orders/all?${params.toString()}`);
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/orders/all?${params.toString()}`, {
+                credentials: 'include'
+            });
             if (!res.ok) throw new Error(await res.text());
             const data = await res.json();
             setOrders(data.sort((a, b) => new Date(b.dateoforder) - new Date(a.dateoforder)));
@@ -52,6 +54,7 @@ export default function ManageOrders(props) {
             const res = await fetch(`${process.env.REACT_APP_API_URL}/orders/update-status`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ invoiceid, status: Number(newStatus) })
             });
             if (!res.ok) throw new Error(await res.text());
