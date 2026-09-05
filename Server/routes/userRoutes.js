@@ -15,6 +15,32 @@ const router = express.Router();
 
 router.use(express.json());
 
+function parseJsonIfString(value) {
+    if (typeof value !== 'string') {
+        return value;
+    }
+
+    try {
+        return JSON.parse(value);
+    } catch {
+        return value;
+    }
+}
+
+function toUserDetails(user, cartItemsCount = 0) {
+    return {
+        userId: user.id,
+        username: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: parseJsonIfString(user.address),
+        deliveryAddress: parseJsonIfString(user.deliveryaddress),
+        isAdminUser: user.profiletype === 1,
+        isCartItemsAvailable: cartItemsCount > 0,
+        profileimage: user.profileimage || null,
+    };
+}
+
 router.post('/userLogin', async function(req, res) {
     var usermail = req.body.usermail;
     var password = req.body.password;
@@ -51,21 +77,12 @@ router.post('/userLogin', async function(req, res) {
             [user.id, 0]
         );
 
+        const userDetails = toUserDetails(user, cartItems.rows.length);
+        req.session.user = userDetails;
+
         console.log('User authenticated successfully');
         res.status(201);
-        res.json({ message: 'Login successful' ,
-            userDetails:{
-                userId: user.id,
-                username: user.name,
-                email: user.email,
-                phone: user.phone,
-                address: typeof user.address === 'string' ? JSON.parse(user.address) : user.address,
-                deliveryAddress: typeof user.deliveryaddress === 'string' ? JSON.parse(user.deliveryaddress) : user.deliveryaddress,
-                isAdminUser: user.profiletype === 1 ? true : false,
-                isCartItemsAvailable: cartItems.rows.length > 0 ? true : false,
-                profileimage: user.profileimage || null
-            }
-        });
+        res.json({ message: 'Login successful', userDetails });
 
 
     }catch(err){
@@ -110,19 +127,12 @@ router.post('/userInfo', async function(req, res) {
         );
         const newUser = insertResult.rows[0];
 
+        const userDetails = toUserDetails(newUser, 0);
+        req.session.user = userDetails;
+
         console.log('User registered successfully');
         res.status(201);
-        res.json({ message: 'Signup successful',
-            userDetails:{
-                userId: newUser.id,
-                username: newUser.name,
-                email: newUser.email,
-                phone: newUser.phone,
-                address: typeof newUser.address === 'string' ? JSON.parse(newUser.address) : newUser.address,
-                deliveryAddress: typeof newUser.deliveryaddress === 'string' ? JSON.parse(newUser.deliveryaddress) : newUser.deliveryaddress,
-                isAdminUser: newUser.profiletype === 1 ? true : false
-            }
-        });
+        res.json({ message: 'Signup successful', userDetails });
 
 
     }catch(err){
@@ -138,6 +148,14 @@ router.put('/userInfo', async function(req, res) {
     var address = req.body.address;
     var profileimage = req.body.profileimage;
 
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
+    if (req.session.user.email !== usermail) {
+        return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
     try{
 
         const updateResult = await pool.query(
@@ -145,21 +163,15 @@ router.put('/userInfo', async function(req, res) {
             [username, phone, JSON.stringify(address), profileimage || null, usermail]
         );
         const updatedUser = updateResult.rows[0];
+        const userDetails = {
+            ...toUserDetails(updatedUser, req.session.user.isCartItemsAvailable ? 1 : 0),
+            isCartItemsAvailable: req.session.user.isCartItemsAvailable,
+        };
+        req.session.user = userDetails;
 
         console.log('User info updated successfully');
         res.status(201);
-        res.json({ message: 'User info updated successfully',
-            userDetails:{
-                userId: updatedUser.id,
-                username: updatedUser.name,
-                email: updatedUser.email,
-                phone: updatedUser.phone,
-                address: typeof updatedUser.address === 'string' ? JSON.parse(updatedUser.address) : updatedUser.address,
-                deliveryAddress : typeof updatedUser.deliveryaddress === 'string' ? JSON.parse(updatedUser.deliveryaddress) : updatedUser.deliveryaddress,
-                isAdminUser: updatedUser.profiletype === 1 ? true : false,
-                profileimage: updatedUser.profileimage || null
-            }
-        });
+        res.json({ message: 'User info updated successfully', userDetails });
 
     }catch(err){
         console.error(err);
@@ -170,6 +182,14 @@ router.put('/userInfo', async function(req, res) {
 router.put('/userInfo/deliveryAddress', async function(req, res) {
     var usermail = req.body.usermail;
     var deliveryAddress = req.body.deliveryAddress;
+
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
+    if (req.session.user.email !== usermail) {
+        return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
 
     try{
 
@@ -201,25 +221,63 @@ router.put('/userInfo/deliveryAddress', async function(req, res) {
             [JSON.stringify(updatedDeliveryAddress), usermail]
         );
         const updatedUser = updateResult.rows[0];
+        const userDetails = {
+            ...toUserDetails(updatedUser, req.session.user.isCartItemsAvailable ? 1 : 0),
+            isCartItemsAvailable: req.session.user.isCartItemsAvailable,
+        };
+        req.session.user = userDetails;
 
         console.log('Delivery address updated successfully');
         res.status(201);
-        res.json({ message: 'Delivery address updated successfully',
-            userDetails:{
-                userId: updatedUser.id,
-                username: updatedUser.name,
-                email: updatedUser.email,
-                phone: updatedUser.phone,
-                address: typeof updatedUser.address === 'string' ? JSON.parse(updatedUser.address) : updatedUser.address,
-                deliveryAddress : typeof updatedUser.deliveryaddress === 'string' ? JSON.parse(updatedUser.deliveryaddress) : updatedUser.deliveryaddress,
-                isAdminUser: updatedUser.profiletype === 1 ? true : false
-            }
-        });
+        res.json({ message: 'Delivery address updated successfully', userDetails });
 
     }catch(err){
         console.error(err);
         res.status(500).send('Internal Server Error');
     }
+});
+
+router.get('/auth/session', async function(req, res) {
+    if (!req.session || !req.session.user) {
+        return res.status(200).json({ isLoggedIn: false, userDetails: null });
+    }
+
+    try {
+        const userId = req.session.user.userId;
+        const [userResult, cartItems] = await Promise.all([
+            pool.query('SELECT * FROM userInfo WHERE id = $1', [userId]),
+            pool.query('SELECT * FROM orderdetails WHERE userId = $1 and ordertype = $2', [userId, 0]),
+        ]);
+
+        if (userResult.rows.length === 0) {
+            req.session.destroy(() => {});
+            return res.status(200).json({ isLoggedIn: false, userDetails: null });
+        }
+
+        const userDetails = toUserDetails(userResult.rows[0], cartItems.rows.length);
+        req.session.user = userDetails;
+
+        return res.status(200).json({ isLoggedIn: true, userDetails });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send('Internal Server Error');
+    }
+});
+
+router.post('/auth/logout', function(req, res) {
+    if (!req.session) {
+        return res.status(200).json({ message: 'Logged out' });
+    }
+
+    req.session.destroy((err) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Internal Server Error');
+        }
+
+        res.clearCookie('amudhootru.sid');
+        return res.status(200).json({ message: 'Logged out' });
+    });
 });
 
 module.exports = router;
