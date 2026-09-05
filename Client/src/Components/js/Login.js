@@ -27,6 +27,7 @@ export default function Login(props) {
             headers: {
               'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify({ usermail, password })
           }
         );
@@ -40,7 +41,6 @@ export default function Login(props) {
           return res.json();
         })
         .then((data) => {
-          debugger;
           props.setUserDetails(data.userDetails);
           props.setIsLoggedIn(true);
           navigate('/');
