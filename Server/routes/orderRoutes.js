@@ -9,6 +9,7 @@ const {
   sendInvoiceEmail,
   sendDeliveryEmail
 } = require("./emailService");
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 require("dotenv").config();
 
@@ -40,7 +41,7 @@ const router = express.Router();
 router.use(express.json());
 
 // Step 1: Create a Razorpay order and return order_id to the client
-router.post('/orders/create-payment', async function(req, res) {
+router.post('/orders/create-payment', requireAuth, async function(req, res) {
     const { products } = req.body;
 
     try {
@@ -83,8 +84,10 @@ router.post('/orders/create-payment', async function(req, res) {
 
 // Step 2: Verify payment and place the order
 // Client sends razorpay_order_id, razorpay_payment_id, razorpay_signature after checkout success
-router.post('/orders/place', async function(req, res) {
-    const { userId, usermail, products, deliveryAddress, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+router.post('/orders/place', requireAuth, async function(req, res) {
+    const { products, deliveryAddress, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const userId = req.user.userId;
+    const usermail = req.user.email;
 
     try {
         // Verify the payment signature
@@ -156,8 +159,8 @@ router.post('/orders/place', async function(req, res) {
     }
 });
 
-router.get('/orders/placed', async function(req, res) {
-    const userId = req.query.userId;
+router.get('/orders/placed', requireAuth, async function(req, res) {
+    const userId = req.user.userId;
 
     try {
         const result = await pool.query(
@@ -233,7 +236,7 @@ router.get('/orders/placed', async function(req, res) {
     }
 });
 
-router.get('/orders/all', async function(req, res) {
+router.get('/orders/all', requireAdmin, async function(req, res) {
     const { status, dateFrom, dateTo } = req.query;
 
     try {
@@ -287,7 +290,7 @@ router.get('/orders/all', async function(req, res) {
     }
 });
 
-router.post('/orders/update-status', async function(req, res) {
+router.post('/orders/update-status', requireAdmin, async function(req, res) {
     const { invoiceid, status } = req.body;
     if (!invoiceid || status === undefined)
         return res.status(400).send('invoiceid and status are required.');
