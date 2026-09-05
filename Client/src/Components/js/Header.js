@@ -18,11 +18,20 @@ export default function Header(props) {
     function userLogin() {
         navigate('/login');
     }
-    function userLogout() {
-        props.setIsLoggedIn(false);
-        props.setUserDetails(null);
-        setIsProfileOpen(false);
-        navigate('/');
+    async function userLogout() {
+        try {
+            await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error('Logout failed:', error);
+        } finally {
+            props.setIsLoggedIn(false);
+            props.setUserDetails(null);
+            setIsProfileOpen(false);
+            navigate('/');
+        }
     }
     function profileImageClick() {
         if(props.isLoggedIn){
