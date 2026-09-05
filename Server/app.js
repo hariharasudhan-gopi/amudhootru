@@ -15,13 +15,43 @@
 
 const express = require("express");
 const cors = require('cors');
+const session = require('express-session');
 require('dotenv').config();
 
 const app = express();
 
 const PORT = process.env.PORT || 8080;
 
-app.use(cors());
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin(origin, callback) {
+    // Allow non-browser requests and configured browser origins.
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
+
+app.use(session({
+  name: 'amudhootru.sid',
+  secret: process.env.SESSION_SECRET || 'amudhootru-dev-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+  },
+}));
+
 // increase limit to handle base64-encoded profile images
 app.use(express.json({ limit: '5mb' }));
 
