@@ -33,11 +33,12 @@ export default function BuyNow(props) {
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/products/getcart?userId=` + props.userDetails.userId, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/products/getcart`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'include'
             });
 
             if (!response.ok) {
@@ -63,7 +64,8 @@ export default function BuyNow(props) {
             const res = await fetch(`${process.env.REACT_APP_API_URL}/products/removefromcart`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productCode, userId: props.userDetails.userId })
+                credentials: 'include',
+                body: JSON.stringify({ productCode })
             });
             if (!res.ok) throw new Error(await res.text());
             setProducts(prev => {
@@ -116,6 +118,7 @@ export default function BuyNow(props) {
             const createResponse = await fetch(`${process.env.REACT_APP_API_URL}/orders/create-payment`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     products: products.map(product => ({
                         productId: product.code,
@@ -130,8 +133,6 @@ export default function BuyNow(props) {
             }
 
             const { orderId, amount, currency, razor_key_id } = await createResponse.json();
-            debugger;
-
             // Step 2: Open Razorpay checkout; handler is called after user pays
             const options = {
                 key: razor_key_id,
@@ -145,9 +146,8 @@ export default function BuyNow(props) {
                         const placeResponse = await fetch(`${process.env.REACT_APP_API_URL}/orders/place`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
                             body: JSON.stringify({
-                                userId: props.userDetails.userId,
-                                usermail: props.userDetails.email,
                                 products: products.map(product => ({
                                     productId: product.code,
                                     quantity: product.quantity || 1,
