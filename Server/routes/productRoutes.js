@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -49,10 +50,10 @@ router.get('/products', async function(req, res) {
     }
 });
 
-router.post('/products/addtocart', async function(req, res) {
+router.post('/products/addtocart', requireAuth, async function(req, res) {
     var productCode = req.body.productCode;
     var productName = req.body.productName;
-    var userId = req.body.userId; // Assuming you have a user ID to associate with the cart item
+    var userId = req.user.userId;
 
     try{
         // Here you can implement the logic to add the product to the user's cart in the database.
@@ -86,9 +87,9 @@ router.post('/products/addtocart', async function(req, res) {
     }       
 });
 
-router.get('/products/getcart', async function(req, res) {
+router.get('/products/getcart', requireAuth, async function(req, res) {
 
-    var userId = req.query.userId; // Assuming you have a user ID to fetch the cart items for
+    var userId = req.user.userId;
 
     try{
 
@@ -131,7 +132,7 @@ router.get('/products/getcart', async function(req, res) {
     }
 });
 
-router.post('/products/add', async function(req, res) {
+router.post('/products/add', requireAdmin, async function(req, res) {
     const { code, name, price, description, quantity, img_src, unit } = req.body;
 
     if (!code || !name || !price || !description || quantity === undefined) {
@@ -175,7 +176,7 @@ router.get('/products/:code', async function(req, res) {
     }
 });
 
-router.post('/products/update', async function(req, res) {
+router.post('/products/update', requireAdmin, async function(req, res) {
     const { code, name, price, description, quantity, img_src, unit } = req.body;
 
     if (!code) return res.status(400).send('Product code is required.');
@@ -208,9 +209,10 @@ router.post('/products/update', async function(req, res) {
     }
 });
 
-router.post('/products/removefromcart', async function(req, res) {
-    const { productCode, userId } = req.body;
-    if (!productCode || !userId) return res.status(400).send('productCode and userId are required.');
+router.post('/products/removefromcart', requireAuth, async function(req, res) {
+    const { productCode } = req.body;
+    const userId = req.user.userId;
+    if (!productCode) return res.status(400).send('productCode is required.');
     try {
         await pool.query(
             'DELETE FROM orderdetails WHERE productcode = $1 AND userid = $2 AND ordertype = 0',
