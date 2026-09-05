@@ -11,12 +11,6 @@ export default function Product(props) {
 
     var productCode = props.code;
     var productName = props.name;
-    var userId = props.userDetails && props.userDetails.userId;
-
-    if (!userId) {
-      console.error('User ID is not available. Cannot add to cart.');
-      return;
-    }
 
     try {
       const response = fetch(
@@ -25,7 +19,8 @@ export default function Product(props) {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ productCode, productName, userId })
+          credentials: 'include',
+          body: JSON.stringify({ productCode, productName })
         }
       );
 
