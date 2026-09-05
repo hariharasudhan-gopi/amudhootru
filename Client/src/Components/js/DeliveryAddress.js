@@ -74,6 +74,7 @@ export default function DeliveryAddress(props) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     usermail: props.userDetails && props.userDetails.email,
                     deliveryAddress: newAddress
