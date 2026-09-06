@@ -107,6 +107,7 @@ export default function Header({
     }
 
     const cartCount = cartItemsCount;
+    const isAboutActive = location.pathname === '/about';
 
     function goToCart() {
         if (!isLoggedIn) {
@@ -128,8 +129,8 @@ export default function Header({
             </span>
 
             <nav className="header_navLinks">
-                <button className="header_navItem header_navItemActive" onClick={() => navigate('/')}>Home</button>
-                <button className="header_navItem" onClick={() => navigate('/about')}>About</button>
+                <button className={`header_navItem${!isAboutActive ? ' header_navItemActive' : ''}`} onClick={() => navigate('/')}>Home</button>
+                <button className={`header_navItem${isAboutActive ? ' header_navItemActive' : ''}`} onClick={() => navigate('/about')}>About</button>
             </nav>
 
             <span className="header_actions">
