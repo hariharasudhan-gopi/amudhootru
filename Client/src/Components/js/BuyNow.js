@@ -5,6 +5,11 @@ import DeliveryAddress from "./DeliveryAddress";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+function publishCartCount(count) {
+    window.dispatchEvent(new CustomEvent('cart-count-changed', {
+        detail: { count }
+    }));
+}
 
 export default function BuyNow(props) {
     const navigate = useNavigate();
@@ -50,6 +55,7 @@ export default function BuyNow(props) {
                 dimensions: p.dimensions ?? { width: 50, height: 50 }
             }));
             setProducts(normalised);
+            publishCartCount(normalised.length);
             const total = normalised.reduce((sum, product) => sum + product.price * (product.quantity || 1), 0);
             setTotalPrice(total);
         } catch (error) {
@@ -70,6 +76,7 @@ export default function BuyNow(props) {
                 const removed = prev.find(p => p.code === productCode);
                 if (removed) setTotalPrice(t => t - removed.price * (removed.quantity || 1));
                 const updated = prev.filter(p => p.code !== productCode);
+                publishCartCount(updated.length);
                 if (updated.length === 0 && props.setUserDetails) {
                     props.setUserDetails(u => ({ ...u, isCartItemsAvailable: false }));
                 }
