@@ -1,21 +1,21 @@
 .backtoProductPage {
-    margin-left: 88%;
-    margin-top: 2%;
-    color: #185e87;
+    margin: 16px auto 0;
+    width: min(92%, 1200px);
+    color: var(--brand-700);
     cursor: pointer;
     font-weight: 600;
 }
 .backtoProductPage:hover {
-    color: #c1ebf7;
+    color: var(--brand-900);
 }
 
 @media (max-width: 768px) {
     .trackOrdersWrapper{ width: 96%; }
-    .backtoProductPage{ margin-left: 60%; }
+    .backtoProductPage{ width: 96%; }
 }
 @media (max-width: 480px) {
     .trackOrdersWrapper{ width: 100%; border-radius: 0; }
-    .backtoProductPage{ margin-left: 4%; }
+    .backtoProductPage{ width: 94%; }
     .trackOrdersTitle{ font-size: 1.3rem; }
     .ordersTable thead tr th,
     .ordersTable tbody tr td{ padding: 10px 10px; font-size: 0.78rem; }
@@ -23,17 +23,20 @@
 
 /* ── page wrapper ─────────────────────────────────── */
 .trackOrdersWrapper {
-    width: 86%;
+    width: min(94%, 1200px);
     margin: 0 auto 60px;
-    border-radius: 12px;
-    background: #ffffff7a;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.75);
     overflow-x: auto;
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
 }
 
 .trackOrdersTitle {
-    color: #185e87;
+    color: var(--brand-700);
     font-size: 1.8rem;
     margin-bottom: 24px;
+    padding: 20px 20px 0;
 }
 
 /* ── outer orders table ───────────────────────────── */
@@ -44,7 +47,7 @@
 }
 
 .ordersTable thead tr th {
-    background-color: #185e87;
+    background-color: var(--brand-700);
     color: white;
     padding: 12px 20px;
     text-align: left;
@@ -64,7 +67,7 @@
 .ordersTable tbody tr:hover {
     background: rgba(255, 255, 255, 0.85);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(24, 94, 135, 0.15);
+    box-shadow: 0 8px 24px rgba(30, 85, 41, 0.15);
 }
 
 .ordersTable tbody tr td {
@@ -84,7 +87,7 @@
 
 .orderIdCell {
     font-weight: 700;
-    color: #185e87;
+    color: var(--brand-700);
     font-size: 1rem;
     white-space: nowrap;
 }
@@ -108,6 +111,27 @@
     white-space: nowrap;
 }
 
+.paymentBadge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    background: rgba(40, 66, 48, 0.12);
+    color: var(--text-900);
+}
+
+.paymentPending {
+    background: rgba(255, 193, 7, 0.18);
+    color: #915d00;
+}
+
+.paymentPaid {
+    background: rgba(46, 158, 75, 0.18);
+    color: #1d6a33;
+}
+
 /* ── inner products table ─────────────────────────── */
 .productsInnerTable {
     width: 100%;
@@ -115,8 +139,8 @@
 }
 
 .productsInnerTable thead tr th {
-    background: rgba(24, 94, 135, 0.08);
-    color: #185e87;
+    background: rgba(63, 124, 76, 0.12);
+    color: var(--brand-700);
     padding: 7px 14px;
     font-size: 0.78rem;
     text-transform: uppercase;
@@ -137,5 +161,5 @@
     border-bottom: none;
 }
 .productsInnerTable tbody tr:hover td {
-    background: rgba(193, 235, 247, 0.3);
+    background: rgba(202, 231, 207, 0.42);
 }

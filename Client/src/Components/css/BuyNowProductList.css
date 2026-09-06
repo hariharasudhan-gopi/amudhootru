@@ -1,8 +1,8 @@
 .buyNowProductListContainer{
-    border-bottom: 2px solid #f3f3f3;
+    border-bottom: 1px solid var(--card-border);
     width: 100%;
     padding: 20px;
-    background-color: #fafafa;
+    background-color: rgba(245, 251, 243, 0.78);
 }
 .productDetails{
     display: flex;
@@ -20,7 +20,7 @@
 }
 .productSubtotal {
     font-size: 0.82rem;
-    color: #888;
+    color: var(--text-700);
     margin: 2px 0 0;
 }
 .buyNowProductListContainer p, .buyNowProductListContainer h3{

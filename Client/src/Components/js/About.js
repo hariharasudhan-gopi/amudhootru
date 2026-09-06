@@ -1,7 +1,7 @@
 import '../css/About.css';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import farmBgImg from '../../assets/images/bgimg.png';
+import farmBgImg from '../../assets/images/background_image.png';
 
 const features = [
     { icon: 'fa-seedling',      label: '100% Organic',        sub: 'Chemical-free farming' },
@@ -24,6 +24,7 @@ export default function About() {
 
     return (
         <div className="about_page">
+            <p className="about_backToShop" onClick={() => navigate('/')}>&#8592; Back to Shop</p>
 
             {/* Hero */}
             <section className="about_hero" style={{ '--farm-bg': `url(${farmBgImg})` }}>

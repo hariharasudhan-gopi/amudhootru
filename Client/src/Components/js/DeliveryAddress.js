@@ -22,7 +22,7 @@ export default function DeliveryAddress(props) {
         if (!props.deliveryAddress && profileAddr) {
             props.setDeliveryAddress(profileAddr);
         }
-    }, []);
+    }, [props.deliveryAddress, props.setDeliveryAddress, profileAddr]);
 
     function validateAddress({ houseFlat, street, city, state, zip, country, contact }) {
         const errs = {};
@@ -34,7 +34,7 @@ export default function DeliveryAddress(props) {
         else if (!/^\d{4,10}$/.test(zip.trim())) errs.zip = 'Enter a valid zip code (4–10 digits).';
         if (!country.trim()) errs.country = 'Country is required.';
         if (!contact.trim()) errs.contact = 'Contact is required.';
-        else if (!/^\+?[\d\s\-]{7,15}$/.test(contact.trim())) errs.contact = 'Enter a valid contact number.';
+        else if (!/^\+?[\d\s-]{7,15}$/.test(contact.trim())) errs.contact = 'Enter a valid contact number.';
         return errs;
     }
 

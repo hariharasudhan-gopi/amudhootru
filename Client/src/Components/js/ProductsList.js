@@ -1,18 +1,32 @@
 import Product from './Product.js';
-import product1Image from '../../assets/images/product1.png';
-import groundNutOilImage from '../../assets/images/ground_nut_oil.png';
-import coconutOilImage from '../../assets/images/coconut_oil.png';
 import '../../Components/css/ProductList.css';
+import heroImage from '../../assets/images/background_image.png';
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 
 
 export default function ProductsList(props) {
+  const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    function handleCatalogSearch(event) {
+      setSearchTerm((event.detail || '').toLowerCase().trim());
+      const section = document.getElementById('products-grid');
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    window.addEventListener('catalog-search', handleCatalogSearch);
+    return () => window.removeEventListener('catalog-search', handleCatalogSearch);
   }, []);
 
   const fetchProducts = async () => {
@@ -35,22 +49,75 @@ export default function ProductsList(props) {
       console.error("Error fetching products:", error);
     }
   };
-  const products1 = [
-    { id: 1, name: 'Product 1', price: 100, description: 'This is product 1', img_src: product1Image, dimensions: { width: 200, height: 200 } },
-    { id: 2, name: 'Product 2', price: 200, description: 'This is product 2', img_src: groundNutOilImage, dimensions: { width: 200, height: 200 } },
-    { id: 3, name: 'Product 3', price: 300, description: 'This is product 3', img_src: coconutOilImage, dimensions: { width: 200, height: 200 } },
-    { id: 4, name: 'Product 4', price: 400, description: 'This is product 4', img_src: product1Image, dimensions: { width: 200, height: 200 } },
-    { id: 5, name: 'Product 5', price: 500, description: 'This is product 5', img_src: groundNutOilImage, dimensions: { width: 200, height: 200 } },
-    { id: 6, name: 'Product 6', price: 600, description: 'This is product 6', img_src: coconutOilImage, dimensions: { width: 200, height: 200 } },
-  ];
+
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return products;
+
+    return products.filter((product) => {
+      const name = (product.name || '').toLowerCase();
+      const desc = (product.description || '').toLowerCase();
+      const code = String(product.code || '').toLowerCase();
+      return name.includes(searchTerm) || desc.includes(searchTerm) || code.includes(searchTerm);
+    });
+  }, [products, searchTerm]);
+
+  function scrollToProducts() {
+    const section = document.getElementById('products-grid');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   return (
     <div className="productsPageContainer">
-      {/* <h1>Products List</h1> */}
-      <span className="productsList">
-        {products.map(product => (
-          <Product key={product.id} {...product} isLoggedIn={props.isLoggedIn} userDetails={props.userDetails} setUserDetails={props.setUserDetails} setCartToast={props.setCartToast} /> 
-        ))}
-      </span>
+      <section className="marketHeroSection">
+        <div className="marketHeroContent">
+          <span className="marketHeroPill">
+            <i className="fa-solid fa-leaf"></i>
+            <span>Good for You. Good for Nature.</span>
+          </span>
+          <h1 className="marketHeroTitle">Fresh from Nature, Delivered to You</h1>
+          <p className="marketHeroSubtitle">
+            Discover farm-fresh groceries, wholesome essentials, and naturally crafted products for your healthy lifestyle.
+          </p>
+          <div className="marketHeroActions">
+            <button className="heroPrimaryBtn" onClick={scrollToProducts}>Shop Now</button>
+            <button className="heroSecondaryBtn" onClick={() => navigate('/about')}>Explore Story</button>
+          </div>
+        </div>
+
+        <div className="marketHeroImageWrap">
+          <img src={heroImage} alt="Organic products basket" className="marketHeroImage" />
+          <div className="heroInfoCard heroInfoTop">
+            <i className="fa-solid fa-shield-heart"></i>
+            <span>100% Natural</span>
+          </div>
+          <div className="heroInfoCard heroInfoBottom">
+            <i className="fa-solid fa-truck-fast"></i>
+            <span>Same Day Delivery</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="marketTrustRow">
+        <div className="marketTrustItem"><i className="fa-regular fa-circle-check"></i><span>100% Organic Produce</span></div>
+        <div className="marketTrustItem"><i className="fa-solid fa-lock"></i><span>Secure Payments</span></div>
+        <div className="marketTrustItem"><i className="fa-solid fa-recycle"></i><span>Sustainable Packaging</span></div>
+        <div className="marketTrustItem"><i className="fa-regular fa-face-smile"></i><span>Trusted by Customers</span></div>
+      </section>
+
+      <section id="products-grid" className="productsListWrap">
+        {searchTerm && (
+          <p className="searchResultText">
+            Showing results for "{searchTerm}" ({filteredProducts.length})
+          </p>
+        )}
+        <span className="productsList">
+          {filteredProducts.map(product => (
+            <Product key={product.id} {...product} isLoggedIn={props.isLoggedIn} userDetails={props.userDetails} setUserDetails={props.setUserDetails} setCartToast={props.setCartToast} /> 
+          ))}
+        </span>
+      </section>
     </div>
   );
 }

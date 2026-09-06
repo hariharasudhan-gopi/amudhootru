@@ -1,7 +1,4 @@
 import BuyNowProductList from "./BuyNowProductList";
-import product1Image from '../../assets/images/product1.png';
-import groundNutOilImage from '../../assets/images/ground_nut_oil.png';
-import coconutOilImage from '../../assets/images/coconut_oil.png';
 import "../css/BuyNow.css";
 import DeliveryAddress from "./DeliveryAddress";
 
@@ -15,6 +12,7 @@ export default function BuyNow(props) {
     const [totalPrice, setTotalPrice] = useState(0);
     const [showDeliveryAddress, setShowDeliveryAddress] = useState(false);
     const [deliveryAddress, setDeliveryAddress] = useState(props.userDetails && props.userDetails.deliveryAddress && props.userDetails.deliveryAddress.length ? props.userDetails.deliveryAddress[0] : null);
+    const [paymentMethod, setPaymentMethod] = useState('online');
 
     function updateProductQuantity(productId, newQuantity) {
         setProducts(prevProducts => {
@@ -102,8 +100,50 @@ export default function BuyNow(props) {
     }
 
     async function placeOrder() {
+        const confirmed = window.confirm('Once your order is placed, it cannot be cancelled. Do you want to continue?');
+        if (!confirmed) {
+            return;
+        }
+
         if (!deliveryAddress) {
             alert("Please provide a delivery address before placing the order.");
+            return;
+        }
+
+        if (products.length === 0) {
+            alert('Your cart is empty. Add items before placing an order.');
+            return;
+        }
+
+        if (paymentMethod === 'cod') {
+            try {
+                const placeResponse = await fetch(`${process.env.REACT_APP_API_URL}/orders/place`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        paymentMethod: 'cod',
+                        products: products.map(product => ({
+                            productId: product.code,
+                            quantity: product.quantity || 1,
+                            price: product.price * (product.quantity || 1),
+                            name: product.name
+                        })),
+                        deliveryAddress
+                    })
+                });
+
+                if (!placeResponse.ok) {
+                    const text = await placeResponse.text();
+                    throw new Error(text);
+                }
+
+                alert('Order placed successfully with Cash on Delivery!');
+                navigate('/');
+            } catch (error) {
+                console.error('Error placing COD order:', error);
+                alert('Failed to place COD order. Please try again.');
+            }
             return;
         }
 
@@ -148,6 +188,7 @@ export default function BuyNow(props) {
                             headers: { 'Content-Type': 'application/json' },
                             credentials: 'include',
                             body: JSON.stringify({
+                                paymentMethod: 'online',
                                 products: products.map(product => ({
                                     productId: product.code,
                                     quantity: product.quantity || 1,
@@ -207,6 +248,29 @@ export default function BuyNow(props) {
                         <span>
                             <h4>Invoice Details</h4>
                             <p>Total Amount: ₹{totalPrice}</p>
+                            <div className="paymentMethodPanel">
+                                <p className="paymentHeading">Payment Method</p>
+                                <label className="paymentOption">
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        value="online"
+                                        checked={paymentMethod === 'online'}
+                                        onChange={(event) => setPaymentMethod(event.target.value)}
+                                    />
+                                    <span>Online Payment</span>
+                                </label>
+                                <label className="paymentOption">
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        value="cod"
+                                        checked={paymentMethod === 'cod'}
+                                        onChange={(event) => setPaymentMethod(event.target.value)}
+                                    />
+                                    <span>Cash on Delivery</span>
+                                </label>
+                            </div>
                         </span>
                         <span>
                             <span className="addressSection">
@@ -221,7 +285,9 @@ export default function BuyNow(props) {
                 </span>
             </span>
             <span>
-                <button className="placeOrderButton" onClick={placeOrder}>Place Order</button>
+                <button className="placeOrderButton" onClick={placeOrder}>
+                    {paymentMethod === 'cod' ? 'Place COD Order' : 'Place Order'}
+                </button>
             </span>
         </div>
         {showDeliveryAddress && <DeliveryAddress userDetails={props.userDetails} deliveryAddress={deliveryAddress} setDeliveryAddress={setDeliveryAddress} setShowDeliveryAddress={setShowDeliveryAddress} setUserDetails={props.setUserDetails} />}

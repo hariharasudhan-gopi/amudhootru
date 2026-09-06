@@ -1,16 +1,17 @@
 .loginContainer{
-    width: 30%;
-    height: 500px;
-    margin-left: auto;
-    margin-top: 100px;
-    margin-right: 100px;
-    background-color: #414040b5;
+    width: min(92%, 420px);
+    min-height: 500px;
+    margin: 72px auto;
+    background-color: var(--glass-dark);
     display: flex;
     flex-direction: column;
     align-items: center;
-    border-radius: 60px;
-    gap: 40px;
+    border-radius: 26px;
+    gap: 28px;
     color: white;
+    padding: 28px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 16px 34px rgba(27, 59, 35, 0.26);
 }
 .loginHeader{
     display: flex;
@@ -33,32 +34,32 @@
 }
 .loginLabel input{
     width: 300px;
-    height: 30px;
+    height: 38px;
     border-radius: 10px;
-    border: 1px solid #ccc;
-    padding: 5px;
-    background-color: #c3c1c199;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 5px 10px;
+    background-color: rgba(255, 255, 255, 0.82);
 }
 .loginLabel input:focus{
     outline: none;
-    border: 1px solid #c1ebf7;
+    border: 1px solid var(--brand-200);
     background-color: white;
 }
 .loginButton{
-    width: 100px;
-    height: 30px;
-    border-radius: 10px;
+    width: 130px;
+    height: 36px;
+    border-radius: 999px;
     border: none;
-    background-color: #185e87;
+    background-color: var(--brand-700);
     color: white;
     cursor: pointer;
+    font-weight: 700;
 }
 .loginButton:hover{
-    background-color: #c1ebf7;
-    color: black;
+    background-color: var(--brand-800);
 }
 .signupLink{
-    color: #c1ebf7;
+    color: var(--brand-200);
 }
 .inputError{
     font-size: 12px;
@@ -88,21 +89,21 @@
     z-index: 1;
 }
 .pwToggleIcon:hover {
-    color: #185e87;
+    color: var(--brand-700);
 }
 
 @media (max-width: 768px) {
     .loginContainer{
-        width: 60%;
+        width: min(92%, 420px);
         margin: 60px auto;
-        border-radius: 40px;
+        border-radius: 22px;
     }
 }
 @media (max-width: 480px) {
     .loginContainer{
-        width: 88%;
+        width: 94%;
         margin: 40px auto;
-        border-radius: 30px;
+        border-radius: 18px;
         gap: 24px;
     }
     .loginLabel input{

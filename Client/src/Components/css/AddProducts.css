@@ -1,16 +1,16 @@
 .addProductsContainer {
-    width: 30%;
-    margin-left: auto;
-    margin-top: 40px;
-    margin-right: 100px;
-    background-color: #414040b5;
+    width: min(92%, 470px);
+    margin: 30px auto;
+    background-color: var(--glass-dark);
     display: flex;
     flex-direction: column;
     align-items: center;
-    border-radius: 60px;
+    border-radius: 24px;
     gap: 30px;
     color: white;
     padding: 40px 0;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 16px 34px rgba(27, 59, 35, 0.26);
 }
 
 @media (max-width: 1024px) {
@@ -42,7 +42,7 @@
 .backtoProductPage {
     align-self: flex-start;
     margin-left: 24px;
-    color: #c1ebf7;
+    color: var(--brand-200);
     cursor: pointer;
     font-weight: 600;
     font-size: 0.9rem;
@@ -76,10 +76,10 @@
 .addProductsLabel select {
     width: 300px;
     border-radius: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid rgba(255, 255, 255, 0.35);
     padding: 5px;
-    background-color: #c3c1c199;
-    color: white;
+    background-color: rgba(255, 255, 255, 0.82);
+    color: var(--text-900);
     font-size: 14px;
 }
 .addProductsLabel select {
@@ -87,7 +87,7 @@
     cursor: pointer;
 }
 .addProductsLabel select option {
-    background-color: #185e87;
+    background-color: var(--brand-700);
 }
 .addProductsLabel input {
     height: 30px;
@@ -104,29 +104,28 @@
 .addProductsLabel input:focus,
 .addProductsLabel textarea:focus {
     outline: none;
-    border: 1px solid #c1ebf7;
-    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid var(--brand-200);
+    background-color: rgba(255, 255, 255, 0.96);
 }
 .imagePreview {
     width: 120px;
     height: 120px;
     object-fit: cover;
     border-radius: 10px;
-    border: 1px solid #c1ebf7;
+    border: 1px solid var(--brand-200);
 }
 .addProductsButton {
     width: 120px;
     height: 34px;
     border-radius: 10px;
     border: none;
-    background-color: #185e87;
+    background-color: var(--brand-700);
     color: white;
     cursor: pointer;
     margin-top: 6px;
 }
 .addProductsButton:hover {
-    background-color: #c1ebf7;
-    color: black;
+    background-color: var(--brand-800);
 }
 .inputError {
     font-size: 12px;
@@ -149,19 +148,19 @@
 .modeBtn {
     padding: 6px 18px;
     border-radius: 20px;
-    border: 1px solid #c1ebf7;
+    border: 1px solid var(--brand-200);
     background: transparent;
-    color: #c1ebf7;
+    color: var(--brand-200);
     cursor: pointer;
     font-size: 13px;
 }
 .modeBtn:hover {
-    background-color: rgba(193, 235, 247, 0.15);
+    background-color: rgba(202, 231, 207, 0.18);
 }
 .modeBtnActive {
-    background-color: #185e87;
+    background-color: var(--brand-700);
     color: white;
-    border-color: #185e87;
+    border-color: var(--brand-700);
 }
 .lookupRow {
     display: flex;
@@ -174,10 +173,10 @@
     width: 200px;
     height: 30px;
     border-radius: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid rgba(255, 255, 255, 0.35);
     padding: 5px;
-    background-color: #c3c1c199;
-    color: white;
+    background-color: rgba(255, 255, 255, 0.82);
+    color: var(--text-900);
     font-size: 14px;
 }
 .lookupBtn {
@@ -185,12 +184,11 @@
     height: 28px;
     border-radius: 10px;
     border: none;
-    background-color: #185e87;
+    background-color: var(--brand-700);
     color: white;
     cursor: pointer;
     font-size: 13px;
 }
 .lookupBtn:hover {
-    background-color: #c1ebf7;
-    color: black;
+    background-color: var(--brand-800);
 }

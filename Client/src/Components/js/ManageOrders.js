@@ -11,6 +11,13 @@ const STATUS_OPTIONS = [
 
 const STATUS_COLORS = { 0: '#b07d12', 1: '#185e87', 2: '#8e44ad', 3: '#1a7a4a' };
 
+function getPaymentBadgeClass(paymentStatus) {
+    const status = (paymentStatus || '').toLowerCase();
+    if (status.includes('pending')) return 'paymentBadge paymentPending';
+    if (status.includes('paid')) return 'paymentBadge paymentPaid';
+    return 'paymentBadge';
+}
+
 export default function ManageOrders(props) {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
@@ -104,6 +111,7 @@ export default function ManageOrders(props) {
                                 <th>Invoice ID</th>
                                 <th>Customer</th>
                                 <th>Date</th>
+                                <th>Payment</th>
                                 <th>Delivery Address</th>
                                 <th>Products</th>
                                 <th>Current Status</th>
@@ -112,7 +120,7 @@ export default function ManageOrders(props) {
                         </thead>
                         <tbody>
                             {orders.length === 0 ? (
-                                <tr><td colSpan={7} className="noOrdersCell">No orders found.</td></tr>
+                                <tr><td colSpan={8} className="noOrdersCell">No orders found.</td></tr>
                             ) : orders.map(order => (
                                 <tr key={order.invoiceid}>
                                     <td className="orderIdCell">{order.invoiceid}</td>
@@ -123,6 +131,11 @@ export default function ManageOrders(props) {
                                     </td>
                                     <td className="orderDateCell">
                                         {new Date(order.dateoforder).toLocaleDateString()}
+                                    </td>
+                                    <td>
+                                        <span className={getPaymentBadgeClass(order.paymentstatus)}>
+                                            {order.paymentstatus || 'Pending'}
+                                        </span>
                                     </td>
                                     <td className="deliveryAddressCell">
                                         {(() => {

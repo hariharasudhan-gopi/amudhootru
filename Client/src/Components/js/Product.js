@@ -51,10 +51,10 @@ export default function Product(props) {
   const unavailable = !props.availablequantity || props.availablequantity <= 0;
   return (
     <span className={`product_container product_${props.id}${unavailable ? ' product_unavailable' : ''}`}>
-      <h2>{props.name}{props.userDetails?.isAdminUser && <span className="productCodeBadge"> ({props.code})</span>}</h2>
+      <h2 className="product_title">{props.name}{props.userDetails?.isAdminUser && <span className="productCodeBadge"> ({props.code})</span>}</h2>
       {props.img_src && <img src={props.img_src} alt={props.name} className="product_image" width={props.dimensions?.width ?? 200} height={props.dimensions?.height ?? 200} />}
-      <p>Price: ₹{props.price}{props.unit ? '/' + props.unit : ''}</p>
-      <p>{props.description}</p>
+      <p className="product_price">Price: ₹{props.price}{props.unit ? '/' + props.unit : ''}</p>
+      <p className="product_description">{props.description}</p>
       {unavailable && <p className="unavailableText">Temporarily Unavailable</p>}
       <span className="product_actions">
         <button className="addToCartButton" onClick={addToCart} disabled={unavailable}

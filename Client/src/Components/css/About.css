@@ -1,13 +1,27 @@
 /* ── Page wrapper ── */
 .about_page {
     font-family: 'Segoe UI', sans-serif;
-    color: #2c2c2c;
+        color: var(--text-900);
+}
+
+.about_backToShop {
+    width: min(1240px, 94%);
+    margin: 18px auto 0;
+    color: var(--brand-700);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.about_backToShop:hover {
+    color: var(--brand-900);
 }
 
 /* ── Hero ── */
 .about_hero {
     position: relative;
-    background-color: #f5f2eb;
+    background-color: #eef5ff;
     min-height: 420px;
     display: flex;
     align-items: center;
@@ -36,6 +50,7 @@
     display: flex;
     align-items: center;
     padding: 60px 6%;
+    background: linear-gradient(90deg, rgba(238, 245, 255, 0.95) 0%, rgba(238, 245, 255, 0.8) 52%, rgba(238, 245, 255, 0.35) 100%);
 }
 .about_hero_text {
     flex: 0 0 auto;
@@ -44,7 +59,7 @@
 .about_hero_text h1 {
     font-size: 3rem;
     font-weight: 800;
-    color: #2c5016;
+        color: var(--brand-800);
     margin: 0 0 8px;
 }
 .about_hero_divider {
@@ -60,13 +75,13 @@
     content: '';
     flex: 1;
     height: 2px;
-    background: #3d6b20;
+    background: var(--brand-700);
     border-radius: 2px;
 }
 .about_hero_tagline {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #3d6b20;
+        color: var(--brand-700);
     margin: 0 0 16px;
 }
 .about_hero_text p {
@@ -95,12 +110,12 @@
     content: '';
     width: 60px;
     height: 2px;
-    background: #3d6b20;
+    background: var(--brand-700);
     border-radius: 2px;
 }
 .about_leaf_white::before,
 .about_leaf_white::after {
-    background: #8fcc50;
+    background: #cde8a7;
 }
 
 /* ── From Our Farms ── */
@@ -112,7 +127,7 @@
 .about_farms h2 {
     font-size: 2rem;
     font-weight: 800;
-    color: #2c5016;
+        color: var(--brand-800);
     margin-bottom: 4px;
 }
 .about_farms_desc {
@@ -139,20 +154,20 @@
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    border: 2px solid #d4e8c2;
+    border: 2px solid #d7ebbf;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f4faf0;
+    background: #f6fcef;
 }
 .about_feature_icon {
     font-size: 1.5rem;
-    color: #3d6b20;
+    color: var(--brand-700);
 }
 .about_feature_label {
     font-weight: 700;
     font-size: 0.88rem;
-    color: #2c5016;
+        color: var(--brand-800);
     margin: 0;
     text-align: center;
 }
@@ -166,14 +181,14 @@
 
 /* ── Our Products ── */
 .about_products {
-    background: #f8f5f0;
+    background: #f8fcf4;
     padding: 60px 6%;
     text-align: center;
 }
 .about_products h2 {
     font-size: 2rem;
     font-weight: 800;
-    color: #2c5016;
+        color: var(--brand-800);
     margin-bottom: 4px;
 }
 .about_products_desc {
@@ -217,7 +232,7 @@
 .about_product_img_placeholder {
     width: 110px;
     height: 110px;
-    background: #fdf3dc;
+    background: #f2f8ea;
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -225,23 +240,23 @@
 }
 .about_honey_icon {
     font-size: 2.8rem;
-    color: #c8850a;
+    color: #5a9b3b;
 }
 .about_product_name {
     font-weight: 700;
     font-size: 0.95rem;
-    color: #2c5016;
+        color: var(--brand-800);
     margin: 0;
 }
 .about_product_desc {
     font-size: 0.78rem;
-    color: #666;
+        color: var(--text-700);
     margin: 0;
     line-height: 1.45;
     text-align: center;
 }
 .about_shop_btn {
-    background: #3d6b20;
+    background: var(--brand-700);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -252,7 +267,7 @@
     transition: background 0.2s;
 }
 .about_shop_btn:hover {
-    background: #2c5016;
+    background: var(--brand-800);
 }
 
 /* ── Mission & Vision ── */
@@ -260,9 +275,10 @@
     background-size: cover;
     background-position: center;
     position: relative;
+    background-attachment: fixed;
 }
 .about_mv_overlay {
-    background: rgba(15, 35, 5, 0.82);
+    background: rgba(24, 49, 16, 0.82);
     padding: 60px 6%;
     display: flex;
     align-items: center;
@@ -276,7 +292,7 @@
 .about_mv_italic {
     font-style: italic;
     font-size: 1.25rem;
-    color: #d4e8c2;
+    color: #dceec7;
     line-height: 1.6;
     font-weight: 500;
 }
@@ -299,26 +315,26 @@
 .about_mv_card h3 {
     font-size: 1.15rem;
     font-weight: 700;
-    color: #b8d98a;
+    color: #cde8a7;
     margin: 0 0 12px;
 }
 .about_mv_icon {
     font-size: 2rem;
-    color: #8fcc50;
+    color: #9ecd68;
     margin-bottom: 14px;
     display: block;
 }
 .about_mv_card p {
     font-size: 0.88rem;
     line-height: 1.65;
-    color: #cde0b8;
+    color: #d3e7bb;
     margin: 0;
 }
 
 /* ── Footer bar ── */
 .about_footer_bar {
-    background: #1a2e0d;
-    color: #c8daa8;
+    background: #1f3a16;
+    color: #d7e9bf;
     text-align: center;
     padding: 18px 20px;
     font-size: 0.92rem;
@@ -334,13 +350,18 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
+    .about_backToShop {
+        width: 96%;
+        margin-top: 14px;
+    }
+
     .about_hero::after {
         width: 100%;
         mask-image: linear-gradient(to bottom, transparent 0%, black 30%);
         -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%);
     }
     .about_hero_overlay {
-        background: rgba(245, 242, 235, 0.82);
+        background: rgba(246, 252, 239, 0.82);
         min-height: 360px;
     }
     .about_mv_overlay { flex-direction: column; }

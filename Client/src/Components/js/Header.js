@@ -1,23 +1,68 @@
 import "../css/Header.css";
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { Routes, Route } from "react-router-dom";
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ProfileImage from "../../assets/images/profile_image_template.png";
 import Logo from "../../assets/images/logo.png";
 import ProfileInfo from "../js/ProfileInfo";
-export default function Header(props) {
+
+export default function Header({
+    isLoggedIn,
+    userDetails,
+    setIsLoggedIn,
+    setUserDetails,
+    cartToast,
+    setCartToast,
+}) {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [searchText, setSearchText] = useState('');
+    const [cartItemsCount, setCartItemsCount] = useState(0);
 
     useEffect(() => {
-        if (!props.cartToast) return;
-        const t = setTimeout(() => props.setCartToast(null), 2500);
+        if (!cartToast) return;
+        const t = setTimeout(() => setCartToast(null), 2500);
         return () => clearTimeout(t);
-    }, [props.cartToast]);
+    }, [cartToast, setCartToast]);
+
+    useEffect(() => {
+        async function fetchCartCount() {
+            if (!isLoggedIn) {
+                setCartItemsCount(0);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/products/getcart`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                });
+
+                if (response.status === 404) {
+                    setCartItemsCount(0);
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch cart count');
+                }
+
+                const data = await response.json();
+                setCartItemsCount((data.products || []).length);
+            } catch (error) {
+                console.error('Failed to load cart items count:', error);
+            }
+        }
+
+        fetchCartCount();
+    }, [isLoggedIn, location.pathname, cartToast]);
+
     function userLogin() {
         navigate('/login');
     }
+
     async function userLogout() {
         try {
             await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`, {
@@ -27,60 +72,100 @@ export default function Header(props) {
         } catch (error) {
             console.error('Logout failed:', error);
         } finally {
-            props.setIsLoggedIn(false);
-            props.setUserDetails(null);
+            setIsLoggedIn(false);
+            setUserDetails(null);
             setIsProfileOpen(false);
             navigate('/');
         }
     }
+
     function profileImageClick() {
-        if(props.isLoggedIn){
+        if(isLoggedIn){
             setIsProfileOpen(!isProfileOpen);
         }else{
             setIsProfileOpen(false);
         }
     }
+
+    function searchProducts(event) {
+        event.preventDefault();
+        const term = searchText.trim();
+        navigate('/');
+        window.dispatchEvent(new CustomEvent('catalog-search', { detail: term }));
+    }
+
+    const cartCount = cartItemsCount;
+
     function goToCart() {
-        if(props.userDetails && props.userDetails.isCartItemsAvailable){
+        if (!isLoggedIn) {
+            navigate('/login');
+            return;
+        }
+
+        if (cartCount > 0) {
             navigate('/buynow');
-        }else{
+        } else {
             alert('No items in cart, Add your item to cart to proceed');
         }
     }
+
     return (
         <div className="header_container">
-            <h1 className="header_title">Amudhootru</h1>
-            <img src={Logo} alt="Amudhootru logo" className="header_logo" />
+            <span className="header_brand" onClick={() => navigate('/')}>
+                <img src={Logo} alt="Amudhootru logo" className="header_logo" />
+            </span>
+
+            <nav className="header_navLinks">
+                <button className="header_navItem header_navItemActive" onClick={() => navigate('/')}>Home</button>
+                <button className="header_navItem" onClick={() => navigate('/about')}>About</button>
+            </nav>
+
             <span className="header_actions">
-                <p className="header_loginButton" onClick={() => navigate('/about')}>About Us</p>
-                {props.isLoggedIn && <p className="header_loginButton" onClick={() => navigate('/track-orders')}>Track Orders</p>}
-                {props.isLoggedIn && props.userDetails?.isAdminUser && (
-                    <p className="header_loginButton" onClick={() => navigate('/add-products')}>Edit Products</p>
+                <form className="header_searchWrap" onSubmit={searchProducts}>
+                    <input
+                        className="header_searchInput"
+                        type="text"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        placeholder="Search products..."
+                        aria-label="Search products"
+                    />
+                    <button className="header_searchBtn" type="submit" aria-label="Search">
+                        <i className="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </form>
+
+                {isLoggedIn && <button className="header_loginButton" onClick={() => navigate('/track-orders')}>Track Orders</button>}
+                {isLoggedIn && userDetails?.isAdminUser && (
+                    <button className="header_loginButton" onClick={() => navigate('/add-products')}>Edit Products</button>
                 )}
-                {props.isLoggedIn && props.userDetails?.isAdminUser && (
-                    <p className="header_loginButton" onClick={() => navigate('/manage-orders')}>Manage Orders</p>
+                {isLoggedIn && userDetails?.isAdminUser && (
+                    <button className="header_loginButton" onClick={() => navigate('/manage-orders')}>Manage Orders</button>
                 )}
-                {!props.isLoggedIn && <button className="header_loginButton" onClick={userLogin}>Login</button>}
-                {props.isLoggedIn && (
-                    <span className="cartIconWrapper">
-                        <i className="cartIcon fa-solid fa-cart-shopping cart-icon" onClick={goToCart}></i>
-                        {props.userDetails?.isCartItemsAvailable && <span className="cartBadge"></span>}
-                        {props.cartToast && (
-                            <span className="cartToast">
-                                <i className="fa-solid fa-circle-check cartToastCheck"></i>
-                                <span><strong>{props.cartToast}</strong> added to cart!</span>
-                            </span>
-                        )}
-                    </span>
-                )}
+                {!isLoggedIn && <button className="header_loginButton" onClick={userLogin}>Login</button>}
+
+                <button className="header_cartButton" onClick={goToCart}>
+                    <i className="cartIcon fa-solid fa-cart-shopping cart-icon"></i>
+                    <span>Cart ({cartCount})</span>
+                    {cartCount > 0 && <span className="cartBadge"></span>}
+                </button>
+
                 <img
-                    src={props.userDetails && props.userDetails.profileimage ? props.userDetails.profileimage : ProfileImage}
+                    src={userDetails && userDetails.profileimage ? userDetails.profileimage : ProfileImage}
                     alt="Profile"
                     className="profileImage"
                     onClick={profileImageClick}
                 />
+
+                {cartToast && (
+                    <span className="cartToast">
+                        <i className="fa-solid fa-circle-check cartToastCheck"></i>
+                        <span><strong>{cartToast}</strong> added to cart!</span>
+                    </span>
+                )}
             </span>
-            {isProfileOpen && <ProfileInfo userDetails={props.userDetails} setIsProfileOpen={setIsProfileOpen} setUserDetails={props.setUserDetails} onLogout={userLogout} />}
+
+            {isProfileOpen && <ProfileInfo userDetails={userDetails} setIsProfileOpen={setIsProfileOpen} setUserDetails={setUserDetails} onLogout={userLogout} />}
         </div>
     );
 }

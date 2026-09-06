@@ -40,6 +40,24 @@ const router = express.Router();
 
 router.use(express.json());
 
+function getPaymentStatus(order) {
+    const isCod = order.paymentsignature === 'cash-on-delivery' || String(order.paymentid || '').startsWith('COD-');
+
+    if (isCod) {
+        if (Number(order.deliverystatus) === 3 || String(order.deliverystatus).toLowerCase() === 'delivered') {
+            return 'Paid (COD Collected)';
+        }
+
+        return 'Pending (Cash on Delivery)';
+    }
+
+    if (order.paymentid) {
+        return 'Paid Online';
+    }
+
+    return 'Pending';
+}
+
 // Step 1: Create a Razorpay order and return order_id to the client
 router.post('/orders/create-payment', requireAuth, async function(req, res) {
     const { products } = req.body;
@@ -85,18 +103,37 @@ router.post('/orders/create-payment', requireAuth, async function(req, res) {
 // Step 2: Verify payment and place the order
 // Client sends razorpay_order_id, razorpay_payment_id, razorpay_signature after checkout success
 router.post('/orders/place', requireAuth, async function(req, res) {
-    const { products, deliveryAddress, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const {
+        products,
+        deliveryAddress,
+        paymentMethod,
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature
+    } = req.body;
     const userId = req.user.userId;
     const usermail = req.user.email;
 
     try {
-        // Verify the payment signature
-        const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
-        hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
-        const generatedSignature = hmac.digest("hex");
+        const selectedPaymentMethod = paymentMethod === 'cod' ? 'cod' : 'online';
 
-        if (generatedSignature !== razorpay_signature) {
-            return res.status(400).json({ message: 'Invalid payment signature' });
+        let savedPaymentId = null;
+        let savedPaymentSignature = null;
+        if (selectedPaymentMethod === 'online') {
+            // Verify the payment signature only for prepaid orders.
+            const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
+            hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+            const generatedSignature = hmac.digest("hex");
+
+            if (generatedSignature !== razorpay_signature) {
+                return res.status(400).json({ message: 'Invalid payment signature' });
+            }
+
+            savedPaymentId = razorpay_payment_id;
+            savedPaymentSignature = razorpay_signature;
+        } else {
+            savedPaymentId = `COD-${Date.now()}`;
+            savedPaymentSignature = 'cash-on-delivery';
         }
 
         // Payment is verified — save the order
@@ -104,7 +141,7 @@ router.post('/orders/place', requireAuth, async function(req, res) {
 
         const orderResult = await pool.query(
             'INSERT INTO ordermeta (userid, deliverystatus, deliveryaddress, dateoforder, paymentid, paymentsignature) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-            [userId, 0, deliveryAddress, orderDate, razorpay_payment_id, razorpay_signature]
+            [userId, 0, deliveryAddress, orderDate, savedPaymentId, savedPaymentSignature]
         );
 
         const orderId = orderResult.rows[0].id;
@@ -144,7 +181,7 @@ router.post('/orders/place', requireAuth, async function(req, res) {
             })),
             invoiceNumber,
             orderDate: new Date(),
-            paymentStatus: 'Paid',
+            paymentStatus: selectedPaymentMethod === 'cod' ? 'Cash on Delivery' : 'Paid',
             subtotal: products.reduce((sum, product) => sum + product.price * (product.quantity || 1), 0),
             tax: 0,
             shipping: 0,
@@ -152,7 +189,12 @@ router.post('/orders/place', requireAuth, async function(req, res) {
             supportEmail: process.env.SUPPORT_EMAIL || 'support@amudhootru.com'
         });
 
-        res.status(200).json({ message: 'Order placed successfully', orderId: orderId });
+        res.status(200).json({
+            message: selectedPaymentMethod === 'cod'
+                ? 'Order placed successfully with Cash on Delivery'
+                : 'Order placed successfully',
+            orderId: orderId
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send('Internal Server Error');
@@ -170,6 +212,12 @@ router.get('/orders/placed', requireAuth, async function(req, res) {
 
         const orders = result.rows;
         for (var i = 0; i < orders.length; i++) {
+            const currentDeliveryStatus = orders[i].deliverystatus;
+            orders[i].paymentstatus = getPaymentStatus({
+                ...orders[i],
+                deliverystatus: currentDeliveryStatus,
+            });
+
             if(orders[i].deliverystatus === 0){
                 orders[i].deliverystatus = "Order Placed";
             }else if(orders[i].deliverystatus === 1){
@@ -261,7 +309,10 @@ router.get('/orders/all', requireAdmin, async function(req, res) {
         query += ' ORDER BY om.dateoforder DESC';
 
         const result = await pool.query(query, params);
-        const orders = result.rows;
+        const orders = result.rows.map((order) => ({
+            ...order,
+            paymentstatus: getPaymentStatus(order),
+        }));
 
         const ordersWithProducts = await Promise.all(orders.map(async (order) => {
             const detailsResult = await pool.query(

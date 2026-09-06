@@ -62,7 +62,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: linear-gradient(160deg, #0097c2 0%, #393939 100%);
+    background: linear-gradient(160deg, var(--brand-900) 0%, var(--brand-700) 100%);
     margin: -20px -20px 20px;
     padding: 30px 20px 22px;
     border-radius: 18px 18px 40px 40px;
@@ -78,7 +78,7 @@
     cursor: pointer;
 }
 .close-icon:hover{
-    color: #c1ebf7;
+    color: var(--brand-200);
 }
 .profileInfoAddress{
     position: static;
@@ -89,9 +89,9 @@
 }
 .profileEditLink{
     margin: 0;
-    color: rgba(193, 235, 247, 0.9);
+    color: rgba(232, 245, 234, 0.95);
     font-size: 0.8rem;
-    border: 1px solid rgba(193, 235, 247, 0.4);
+    border: 1px solid rgba(232, 245, 234, 0.4);
     padding: 3px 14px;
     border-radius: 10px;
 }
@@ -126,11 +126,11 @@
     border-radius: 10px;
     border: 1px solid #ccc;
     padding: 5px;
-    background-color: #c3c1c199;
+    background-color: rgba(255, 255, 255, 0.88);
 }
 .profileEditLabel input:focus{
     outline: none;
-    border: 1px solid #c1ebf7;
+    border: 1px solid var(--brand-200);
     background-color: white;
 }
 .profileEditButton{
@@ -138,13 +138,12 @@
     height: 30px;
     border-radius: 10px;
     border: none;
-    background-color: #185e87;
+    background-color: var(--brand-700);
     color: white;
     cursor: pointer;
 }
 .profileEditButton:hover{
-    background-color: #c1ebf7;
-    color: black;
+    background-color: var(--brand-800);
 }
 .profileEditAddress{
     display: grid;
@@ -186,15 +185,15 @@
     gap: 10px;
     padding: 10px 14px;
     border-radius: 10px;
-    background: rgba(24, 94, 135, 0.05);
-    border: 1px solid rgba(24, 94, 135, 0.08);
+    background: rgba(63, 124, 76, 0.08);
+    border: 1px solid rgba(63, 124, 76, 0.18);
     font-size: 0.9rem;
     color: #333;
     margin: 0;
 }
 
 .detailIcon {
-    color: #185e87;
+    color: var(--brand-700);
     width: 16px;
     text-align: center;
     font-size: 0.85rem;
@@ -208,7 +207,7 @@
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #185e87;
+    color: var(--brand-700);
     font-weight: 700;
     margin: 10px 0 4px;
     padding: 0 2px;
@@ -217,7 +216,7 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: rgba(24, 94, 135, 0.18);
+    background: rgba(63, 124, 76, 0.18);
 }
 
 .profileAddressLine {
@@ -230,13 +229,13 @@
 }
 .profileAddressLine::before {
     content: '·';
-    color: #185e87;
+    color: var(--brand-700);
     font-weight: bold;
 }
 
 /* ── edit mode enhancements ────────────────────── */
 .back-icon {
-    color: #185e87;
+    color: var(--brand-700);
     font-size: 1rem;
     cursor: pointer;
     padding: 6px 10px;
@@ -245,12 +244,12 @@
     transition: background 0.2s;
 }
 .back-icon:hover {
-    background: rgba(24, 94, 135, 0.1);
+    background: rgba(63, 124, 76, 0.15);
 }
 
 .profileEdit .profileInfoImage {
     border-radius: 50%;
-    border: 3px solid #185e87;
+    border: 3px solid var(--brand-700);
 }
 
 .profileEditButton {
@@ -258,7 +257,7 @@
     height: 34px;
     border-radius: 10px;
     border: none;
-    background-color: #185e87;
+    background-color: var(--brand-700);
     color: white;
     cursor: pointer;
     font-weight: 600;
@@ -267,6 +266,5 @@
     transition: background 0.2s, color 0.2s;
 }
 .profileEditButton:hover {
-    background-color: #c1ebf7;
-    color: black;
+    background-color: var(--brand-800);
 }

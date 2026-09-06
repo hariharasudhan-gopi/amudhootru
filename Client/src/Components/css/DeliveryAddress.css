@@ -1,7 +1,7 @@
 .deliveryAddressContainer{
     height: 100vh;
     width: 33%;
-    background-color: #ecf7fa;
+    background-color: #f5fbf3;
     position: fixed;
     top: 0;
     right: 0;
@@ -18,7 +18,7 @@
 
 /* ── header banner (negative margin to bleed to container edges) ─ */
 .deliveryAddressContainer > h3 {
-    background: linear-gradient(160deg, #185e87 0%, #1d8ab5 100%);
+    background: linear-gradient(160deg, var(--brand-900) 0%, var(--brand-700) 100%);
     color: white;
     margin: -20px -20px 20px;
     padding: 20px 20px 18px;
@@ -35,7 +35,7 @@
     font-size: 1rem;
 }
 .close-icon:hover{
-    color: #c1ebf7;
+    color: var(--brand-200);
 }
 
 /* ── address list view ───────────────────────────── */
@@ -55,18 +55,18 @@
     gap: 12px;
     padding: 14px 16px;
     border-radius: 12px;
-    background: rgba(24, 94, 135, 0.05);
-    border: 1px solid rgba(24, 94, 135, 0.1);
+    background: rgba(63, 124, 76, 0.08);
+    border: 1px solid rgba(63, 124, 76, 0.18);
     transition: background 0.2s, box-shadow 0.2s;
     cursor: pointer;
 }
 .deliveryAddressItem:hover{
-    background: rgba(24, 94, 135, 0.1);
-    box-shadow: 0 4px 12px rgba(24, 94, 135, 0.12);
+    background: rgba(63, 124, 76, 0.14);
+    box-shadow: 0 4px 12px rgba(30, 85, 41, 0.12);
 }
 .deliveryAddressItem:has(input:checked){
-    border-color: #185e87;
-    background: rgba(24, 94, 135, 0.08);
+    border-color: var(--brand-700);
+    background: rgba(63, 124, 76, 0.12);
 }
 
 .addressRadioWrap{
@@ -78,7 +78,7 @@
 .addressRadioWrap input[type="radio"]{
     width: 18px;
     height: 18px;
-    accent-color: #185e87;
+    accent-color: var(--brand-700);
     cursor: pointer;
 }
 
@@ -94,7 +94,7 @@
 }
 .addressCardText p:last-child{
     font-size: 0.82rem;
-    color: #185e87;
+    color: var(--brand-700);
     font-weight: 600;
 }
 
@@ -102,9 +102,9 @@
 .addNewAddressButton{
     height: 34px;
     border-radius: 10px;
-    border: 2px solid #185e87;
+    border: 2px solid var(--brand-700);
     background: none;
-    color: #185e87;
+    color: var(--brand-700);
     cursor: pointer;
     padding: 0 18px;
     font-weight: 600;
@@ -115,7 +115,7 @@
     transition: background 0.2s, color 0.2s;
 }
 .addNewAddressButton:hover{
-    background-color: #185e87;
+    background-color: var(--brand-700);
     color: white;
 }
 
@@ -124,7 +124,7 @@
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #185e87;
+    color: var(--brand-700);
     font-weight: 700;
     margin: 0 0 16px;
     display: flex;
@@ -135,7 +135,7 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: rgba(24, 94, 135, 0.18);
+    background: rgba(63, 124, 76, 0.2);
 }
 
 .addressForm{
@@ -161,7 +161,7 @@
 }
 .addressLabel input:focus{
     outline: none;
-    border: 1px solid #c1ebf7;
+    border: 1px solid var(--brand-200);
     background-color: white;
 }
 .addressError {
@@ -173,8 +173,8 @@
     display: inline-block;
     font-size: 0.72rem;
     font-weight: 600;
-    color: #185e87;
-    background: #e0f3fc;
+    color: var(--brand-700);
+    background: var(--brand-100);
     border-radius: 4px;
     padding: 1px 7px;
     margin-bottom: 4px;
@@ -184,7 +184,7 @@
     height: 34px;
     border-radius: 10px;
     border: none;
-    background-color: #185e87;
+    background-color: var(--brand-700);
     color: white;
     cursor: pointer;
     padding: 0 20px;
@@ -196,8 +196,7 @@
     transition: background 0.2s, color 0.2s;
 }
 .addressButton:hover{
-    background-color: #c1ebf7;
-    color: black;
+    background-color: var(--brand-800);
 }
 
 @media (max-width: 768px) {

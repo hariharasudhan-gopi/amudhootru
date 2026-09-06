@@ -1,13 +1,21 @@
 .app_container{
-  background-image: url('./assets/images/bgimg.png');
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(178, 218, 142, 0.3), transparent 36%),
+    radial-gradient(circle at 88% 14%, rgba(149, 203, 116, 0.24), transparent 32%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.9), rgba(248, 253, 242, 0.94)),
+    url('./assets/images/background_image.png') center/cover no-repeat fixed;
+  background-blend-mode: screen, screen, normal, normal;
   overflow: auto;
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .app_container {
+    background-attachment: scroll;
+  }
 }
 .App {
   text-align: center;

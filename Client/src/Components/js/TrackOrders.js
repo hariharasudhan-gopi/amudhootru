@@ -20,6 +20,15 @@ function StatusBadge({ status }) {
     );
 }
 
+function PaymentStatusBadge({ status }) {
+    const key = (status || '').toLowerCase();
+    let className = 'paymentBadge';
+    if (key.includes('pending')) className += ' paymentPending';
+    if (key.includes('paid')) className += ' paymentPaid';
+
+    return <span className={className}>{status || 'Pending'}</span>;
+}
+
 export function TrackOrders(props) {
     const [orders, setOrders] = useState([]);
 
@@ -66,6 +75,7 @@ export function TrackOrders(props) {
             <tr>
               <th>Order ID</th>
               <th>Date of Order</th>
+                            <th>Payment Status</th>
               <th>Product</th>
               <th>Delivery Address</th>
               <th>Status</th>
@@ -76,6 +86,7 @@ export function TrackOrders(props) {
               <tr key={order.id}>
                 <td className="orderIdCell">{order.invoiceid}</td>
                 <td className="orderDateCell">{new Date(order.dateoforder).toLocaleDateString()}</td>
+                                <td><PaymentStatusBadge status={order.paymentstatus} /></td>
                 <td>
                     <table className="productsInnerTable">
                         <thead>
