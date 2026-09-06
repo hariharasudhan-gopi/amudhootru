@@ -59,6 +59,18 @@ export default function Header({
         fetchCartCount();
     }, [isLoggedIn, location.pathname, cartToast]);
 
+    useEffect(() => {
+        function handleCartCountChanged(event) {
+            const nextCount = Number(event.detail?.count);
+            if (!Number.isNaN(nextCount)) {
+                setCartItemsCount(nextCount);
+            }
+        }
+
+        window.addEventListener('cart-count-changed', handleCartCountChanged);
+        return () => window.removeEventListener('cart-count-changed', handleCartCountChanged);
+    }, []);
+
     function userLogin() {
         navigate('/login');
     }
