@@ -16,11 +16,17 @@
 const express = require("express");
 const cors = require('cors');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 require('dotenv').config();
+const pool = require('./db/pool');
 
 const app = express();
 
 const PORT = process.env.PORT || 8080;
+
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
 
 const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
   .split(',')
@@ -40,6 +46,11 @@ app.use(cors({
 }));
 
 app.use(session({
+  store: new pgSession({
+    pool,
+    tableName: 'user_sessions',
+    createTableIfMissing: true,
+  }),
   name: 'amudhootru.sid',
   secret: process.env.SESSION_SECRET || 'amudhootru-dev-secret',
   resave: false,
