@@ -33,14 +33,12 @@ const router = express.Router();
 router.use(express.json());
 
 function getPaymentStatus(order) {
-    const isCod = order.paymentsignature === 'cash-on-delivery' || String(order.paymentid || '').startsWith('COD-');
+    const paymentSignature = String(order.paymentsignature || '').toLowerCase();
+    const isCod = paymentSignature.startsWith('cash-on-delivery') || String(order.paymentid || '').startsWith('COD-');
 
     if (isCod) {
-        if (Number(order.deliverystatus) === 3 || String(order.deliverystatus).toLowerCase() === 'delivered') {
-            return 'Paid (COD Collected)';
-        }
-
-        return 'Pending (Cash on Delivery)';
+        const isCodPaid = paymentSignature === 'cash-on-delivery-paid';
+        return isCodPaid ? 'Paid (COD Collected)' : 'Pending (Cash on Delivery)';
     }
 
     if (order.paymentid) {
@@ -204,11 +202,10 @@ router.get('/orders/placed', requireAuth, async function(req, res) {
 
         const orders = result.rows;
         for (var i = 0; i < orders.length; i++) {
-            const currentDeliveryStatus = orders[i].deliverystatus;
-            orders[i].paymentstatus = getPaymentStatus({
-                ...orders[i],
-                deliverystatus: currentDeliveryStatus,
-            });
+            const paymentSignature = String(orders[i].paymentsignature || '').toLowerCase();
+            orders[i].iscodorder = paymentSignature.startsWith('cash-on-delivery') || String(orders[i].paymentid || '').startsWith('COD-');
+            orders[i].iscodpaid = paymentSignature === 'cash-on-delivery-paid';
+            orders[i].paymentstatus = getPaymentStatus(orders[i]);
 
             if(orders[i].deliverystatus === 0){
                 orders[i].deliverystatus = "Order Placed";
@@ -301,10 +298,18 @@ router.get('/orders/all', requireAdmin, async function(req, res) {
         query += ' ORDER BY om.dateoforder DESC';
 
         const result = await pool.query(query, params);
-        const orders = result.rows.map((order) => ({
-            ...order,
-            paymentstatus: getPaymentStatus(order),
-        }));
+        const orders = result.rows.map((order) => {
+            const paymentSignature = String(order.paymentsignature || '').toLowerCase();
+            const isCodOrder = paymentSignature.startsWith('cash-on-delivery') || String(order.paymentid || '').startsWith('COD-');
+            const isCodPaid = paymentSignature === 'cash-on-delivery-paid';
+
+            return {
+                ...order,
+                iscodorder: isCodOrder,
+                iscodpaid: isCodPaid,
+                paymentstatus: getPaymentStatus(order),
+            };
+        });
 
         const ordersWithProducts = await Promise.all(orders.map(async (order) => {
             const detailsResult = await pool.query(
@@ -372,6 +377,56 @@ router.post('/orders/update-status', requireAdmin, async function(req, res) {
     } catch (err) {
         console.error(err);
         res.status(500).send('Internal Server Error');
+    }
+});
+
+router.post('/orders/update-payment-status', requireAdmin, async function(req, res) {
+    const { invoiceid, paymentStatus } = req.body;
+
+    if (!invoiceid || !paymentStatus) {
+        return res.status(400).send('invoiceid and paymentStatus are required.');
+    }
+
+    if (String(paymentStatus).toLowerCase() !== 'paid') {
+        return res.status(400).send("paymentStatus must be 'paid'.");
+    }
+
+    try {
+        const orderResult = await pool.query(
+            'SELECT paymentid, paymentsignature FROM ordermeta WHERE invoiceid = $1',
+            [invoiceid]
+        );
+
+        if (orderResult.rows.length === 0) {
+            return res.status(404).send('Order not found.');
+        }
+
+        const order = orderResult.rows[0];
+        const paymentSignature = String(order.paymentsignature || '').toLowerCase();
+        const isCodOrder = paymentSignature.startsWith('cash-on-delivery') || String(order.paymentid || '').startsWith('COD-');
+
+        if (!isCodOrder) {
+            return res.status(400).send('Manual payment update is allowed only for COD orders.');
+        }
+
+        const normalizedStatus = String(paymentStatus).toLowerCase();
+        const nextSignature = 'cash-on-delivery-paid';
+
+        await pool.query(
+            'UPDATE ordermeta SET paymentsignature = $1 WHERE invoiceid = $2',
+            [nextSignature, invoiceid]
+        );
+
+        return res.status(200).json({
+            message: 'Payment status updated successfully.',
+            invoiceid,
+            paymentstatus: 'Paid (COD Collected)',
+            iscodorder: true,
+            iscodpaid: true,
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send('Internal Server Error');
     }
 });
 
