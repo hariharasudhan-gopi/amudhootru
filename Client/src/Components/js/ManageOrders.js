@@ -73,6 +73,37 @@ export default function ManageOrders(props) {
         }
     }
 
+    async function updateCodPaymentStatus(invoiceid, paymentStatus) {
+        try {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/orders/update-payment-status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ invoiceid, paymentStatus })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+
+            setOrders(prev => prev.map(o => o.invoiceid === invoiceid
+                ? {
+                    ...o,
+                    paymentstatus: data.paymentstatus,
+                    iscodorder: true,
+                    iscodpaid: data.iscodpaid,
+                }
+                : o));
+
+            setUpdateMsg(prev => ({ ...prev, [`payment-${invoiceid}`]: 'Payment updated!' }));
+            setTimeout(() => setUpdateMsg(prev => {
+                const n = { ...prev };
+                delete n[`payment-${invoiceid}`];
+                return n;
+            }), 2000);
+        } catch (err) {
+            setUpdateMsg(prev => ({ ...prev, [`payment-${invoiceid}`]: 'Failed: ' + err.message }));
+        }
+    }
+
     return (
         <div className="manageOrdersPage">
             <p className="backtoProductPage" onClick={() => navigate('/')}>&#8592; Back to Shop</p>
@@ -133,9 +164,24 @@ export default function ManageOrders(props) {
                                         {new Date(order.dateoforder).toLocaleDateString()}
                                     </td>
                                     <td>
-                                        <span className={getPaymentBadgeClass(order.paymentstatus)}>
-                                            {order.paymentstatus || 'Pending'}
-                                        </span>
+                                        <div className="paymentCell">
+                                            <span className={getPaymentBadgeClass(order.paymentstatus)}>
+                                                {order.paymentstatus || 'Pending'}
+                                            </span>
+                                            {order.iscodorder && !order.iscodpaid && (
+                                                <button
+                                                    className="paymentUpdateBtn"
+                                                    onClick={() => updateCodPaymentStatus(order.invoiceid, 'paid')}
+                                                >
+                                                    Mark Paid
+                                                </button>
+                                            )}
+                                            {updateMsg[`payment-${order.invoiceid}`] && (
+                                                <span className={`updateMsg${updateMsg[`payment-${order.invoiceid}`].startsWith('Failed') ? ' updateMsgError' : ''}`}>
+                                                    {updateMsg[`payment-${order.invoiceid}`]}
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="deliveryAddressCell">
                                         {(() => {
