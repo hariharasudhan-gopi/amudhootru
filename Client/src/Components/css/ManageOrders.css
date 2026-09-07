@@ -154,6 +154,28 @@
     color: #1d6a33;
 }
 
+.paymentCell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.paymentUpdateBtn {
+    width: fit-content;
+    border: 1px solid var(--brand-700);
+    background: white;
+    color: var(--brand-700);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.paymentUpdateBtn:hover {
+    background: rgba(63, 124, 76, 0.14);
+}
+
 /* ── product list inside cell ─────────────────── */
 .manageProductList {
     margin: 0;
