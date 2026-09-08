@@ -365,12 +365,16 @@ router.post('/orders/update-status', requireAdmin, async function(req, res) {
             );
             if (orderRow.rows.length > 0) {
                 const { username, useremail } = orderRow.rows[0];
-                await sendDeliveryEmail({
-                    customerName: username || useremail,
-                    customerEmail: useremail,
-                    invoiceNumber: invoiceid,
-                    supportEmail: process.env.SUPPORT_EMAIL || 'support@amudhootru.com'
-                });
+                try {
+                    await sendDeliveryEmail({
+                        customerName: username || useremail,
+                        customerEmail: useremail,
+                        invoiceNumber: invoiceid,
+                        supportEmail: process.env.SUPPORT_EMAIL || 'support@amudhootru.com'
+                    });
+                } catch (emailErr) {
+                    console.error('Delivery email failed:', emailErr?.message || emailErr);
+                }
             }
         }
 
@@ -422,12 +426,16 @@ router.post('/orders/update-payment-status', requireAdmin, async function(req, r
         );
 
         if (order.useremail) {
-            await sendPaymentSuccessEmail({
-                customerName: order.username || order.useremail,
-                customerEmail: order.useremail,
-                invoiceNumber: invoiceid,
-                supportEmail: process.env.SUPPORT_EMAIL || 'support@amudhootru.com'
-            });
+            try {
+                await sendPaymentSuccessEmail({
+                    customerName: order.username || order.useremail,
+                    customerEmail: order.useremail,
+                    invoiceNumber: invoiceid,
+                    supportEmail: process.env.SUPPORT_EMAIL || 'support@amudhootru.com'
+                });
+            } catch (emailErr) {
+                console.error('Payment success email failed:', emailErr?.message || emailErr);
+            }
         }
 
         return res.status(200).json({
