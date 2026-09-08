@@ -6,7 +6,8 @@ const crypto = require("crypto");
 
 const {
   sendInvoiceEmail,
-  sendDeliveryEmail
+    sendDeliveryEmail,
+    sendPaymentSuccessEmail
 } = require("./emailService");
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 
@@ -393,7 +394,10 @@ router.post('/orders/update-payment-status', requireAdmin, async function(req, r
 
     try {
         const orderResult = await pool.query(
-            'SELECT paymentid, paymentsignature FROM ordermeta WHERE invoiceid = $1',
+            `SELECT om.paymentid, om.paymentsignature, ui.name AS username, ui.email AS useremail
+             FROM ordermeta om
+             LEFT JOIN userinfo ui ON ui.id = om.userid
+             WHERE om.invoiceid = $1`,
             [invoiceid]
         );
 
@@ -416,6 +420,15 @@ router.post('/orders/update-payment-status', requireAdmin, async function(req, r
             'UPDATE ordermeta SET paymentsignature = $1 WHERE invoiceid = $2',
             [nextSignature, invoiceid]
         );
+
+        if (order.useremail) {
+            await sendPaymentSuccessEmail({
+                customerName: order.username || order.useremail,
+                customerEmail: order.useremail,
+                invoiceNumber: invoiceid,
+                supportEmail: process.env.SUPPORT_EMAIL || 'support@amudhootru.com'
+            });
+        }
 
         return res.status(200).json({
             message: 'Payment status updated successfully.',
