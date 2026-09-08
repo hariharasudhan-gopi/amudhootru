@@ -49,6 +49,7 @@ app.use(session({
   store: new pgSession({
     pool,
     tableName: 'user_sessions',
+    schemaName: 'public',
     createTableIfMissing: true,
   }),
   name: 'amudhootru.sid',
