@@ -43,6 +43,16 @@ router.post('/userLogin', async function(req, res) {
         console.log('✅ PostgreSQL connected');
         // console.log('Server time:', result.rows[0].now);
 
+        const result = await pool.query(`
+          SELECT
+            version(),
+            current_database(),
+            current_user,
+            inet_server_addr()
+        `);
+        
+        console.log("DATABASE INFO:", result.rows[0]);
+
         const result = await pool.query(
             'SELECT * FROM userInfo WHERE email = $1',
             [usermail]
