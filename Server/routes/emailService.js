@@ -165,7 +165,37 @@ console.log("Sending delivery email to:", customerEmail);
   });
 }
 
+async function sendPaymentSuccessEmail({ customerName, customerEmail, invoiceNumber, supportEmail }) {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#333;">
+      <div style="background:linear-gradient(160deg,#1a7a4a 0%,#2ea84d 100%);padding:32px 28px;border-radius:12px 12px 0 0;">
+        <h1 style="color:white;margin:0;font-size:1.5rem;">Amudhootru</h1>
+        <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;">Payment received successfully</p>
+      </div>
+      <div style="background:#f6fff8;padding:28px;border:1px solid #d7f2df;border-top:none;border-radius:0 0 12px 12px;">
+        <p>Dear <strong>${customerName}</strong>,</p>
+        <p>We have received your payment for order <strong>#${invoiceNumber}</strong>.</p>
+        <div style="background:#e9f9ef;border-left:4px solid #1a7a4a;padding:14px 18px;border-radius:6px;margin:20px 0;">
+          <p style="margin:0;"><strong>Order:</strong> ${invoiceNumber}</p>
+          <p style="margin:6px 0 0;"><strong>Payment Status:</strong> <span style="color:#1a7a4a;font-weight:700;">Paid ✓</span></p>
+        </div>
+        <p>Thank you for shopping with us. If you have any questions, contact us at <a href="mailto:${supportEmail}" style="color:#1a7a4a;">${supportEmail}</a>.</p>
+        <p style="margin-top:24px;">Warm regards,<br><strong>The Amudhootru Team</strong></p>
+      </div>
+    </div>
+  `;
+
+  console.log("Sending payment success email to:", customerEmail);
+  return await resend.emails.send({
+    from: `Amudhootru <${process.env.GMAIL_USER}>`,
+    to: customerEmail,
+    subject: `Payment received for order #${invoiceNumber}`,
+    html
+  });
+}
+
 module.exports = {
   sendInvoiceEmail,
-  sendDeliveryEmail
+  sendDeliveryEmail,
+  sendPaymentSuccessEmail
 };
