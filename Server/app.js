@@ -28,6 +28,24 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
+const ensureSessionTableSQL = `
+  CREATE TABLE IF NOT EXISTS user_sessions (
+    sid VARCHAR PRIMARY KEY,
+    sess JSON NOT NULL,
+    expire TIMESTAMP(6) NOT NULL
+  );
+`;
+
+const ensureSessionIndexSQL = `
+  CREATE INDEX IF NOT EXISTS idx_user_sessions_expire ON user_sessions (expire);
+`;
+
+pool.query(ensureSessionTableSQL)
+  .then(() => pool.query(ensureSessionIndexSQL))
+  .catch((error) => {
+    console.error('Failed to ensure session table:', error.message);
+  });
+
 const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
   .split(',')
   .map((origin) => origin.trim())
@@ -49,8 +67,6 @@ app.use(session({
   store: new pgSession({
     pool,
     tableName: 'user_sessions',
-    schemaName: 'public',
-    createTableIfMissing: true,
   }),
   name: 'amudhootru.sid',
   secret: process.env.SESSION_SECRET || 'amudhootru-dev-secret',
