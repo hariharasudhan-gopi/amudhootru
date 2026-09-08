@@ -1,8 +1,21 @@
 const nodemailer = require("nodemailer");
-const { Resend } = require("resend");
 require("dotenv").config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend = null;
+if (process.env.RESEND_API_KEY) {
+  try {
+    const { Resend } = require("resend");
+    resend = new Resend(process.env.RESEND_API_KEY);
+  } catch (error) {
+    console.error("Resend SDK not installed. Falling back to SMTP only.");
+  }
+}
+
+const FROM_EMAIL =
+  process.env.RESEND_FROM_EMAIL ||
+  process.env.EMAIL_FROM ||
+  process.env.GMAIL_USER ||
+  "onboarding@resend.dev";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -14,6 +27,34 @@ const transporter = nodemailer.createTransport({
     pass: process.env.GMAIL_APP_PASSWORD
   }
 });
+
+async function sendEmailWithFallback({ to, subject, html }) {
+  if (!to) {
+    throw new Error("Missing recipient email address");
+  }
+
+  const message = {
+    from: `Amudhootru <${FROM_EMAIL}>`,
+    to,
+    subject,
+    html,
+  };
+
+  const canUseResend = Boolean(process.env.RESEND_API_KEY && resend);
+  if (canUseResend) {
+    try {
+      return await resend.emails.send(message);
+    } catch (error) {
+      const resendMessage = error?.message || "Unknown Resend error";
+      console.error("Resend send failed:", resendMessage);
+      if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+        throw error;
+      }
+    }
+  }
+
+  return await transporter.sendMail(message);
+}
 
 async function sendInvoiceEmail(order) {
 
@@ -116,7 +157,7 @@ async function sendInvoiceEmail(order) {
   `;
 
   const mailOptions = {
-    from: `Amudhootru <${process.env.GMAIL_USER}>`,
+    from: `Amudhootru <${FROM_EMAIL}>`,
     to: order.customerEmail,
     subject: `Invoice for Your Order #${order.invoiceNumber}`,
     html: html
@@ -124,7 +165,7 @@ async function sendInvoiceEmail(order) {
 
   console.log("Sending invoice email to:", order.customerEmail);
   try {
-        return await resend.emails.send(mailOptions);
+        return await sendEmailWithFallback(mailOptions);
     } catch (error) {
       console.log("Failed to send invoice email:", error);
         console.error("Failed to send invoice email:", error);
@@ -157,10 +198,10 @@ async function sendDeliveryEmail({ customerName, customerEmail, invoiceNumber, s
     </div>
   `;
 console.log("Sending delivery email to:", customerEmail);
-  return await resend.emails.send({
-    from: `Amudhootru <${process.env.GMAIL_USER}>`,
+  return await sendEmailWithFallback({
+    from: `Amudhootru <${FROM_EMAIL}>`,
     to: customerEmail,
-    subject: `Your order #${invoiceNumber} has been delivered 🎉`,
+    subject: `Your order #${invoiceNumber} has been delivered`,
     html
   });
 }
@@ -186,8 +227,8 @@ async function sendPaymentSuccessEmail({ customerName, customerEmail, invoiceNum
   `;
 
   console.log("Sending payment success email to:", customerEmail);
-  return await resend.emails.send({
-    from: `Amudhootru <${process.env.GMAIL_USER}>`,
+  return await sendEmailWithFallback({
+    from: `Amudhootru <${FROM_EMAIL}>`,
     to: customerEmail,
     subject: `Payment received for order #${invoiceNumber}`,
     html
