@@ -23,8 +23,9 @@ const pool = require('./db/pool');
 const app = express();
 
 const PORT = process.env.PORT || 8080;
+const isProduction = process.env.NODE_ENV === 'production';
 
-if (process.env.NODE_ENV === 'production') {
+if (isProduction) {
   app.set('trust proxy', 1);
 }
 
@@ -70,12 +71,14 @@ app.use(session({
   }),
   name: 'amudhootru.sid',
   secret: process.env.SESSION_SECRET || 'amudhootru-dev-secret',
+  proxy: isProduction,
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProduction,
+    // Cross-site cookie is required when frontend and API are on different Railway domains.
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 1000 * 60 * 60 * 24, // 24 hours
   },
 }));
