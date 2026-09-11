@@ -90,11 +90,13 @@ app.use(express.json({ limit: '5mb' }));
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 // use routes
 app.use(userRoutes);
 app.use(productRoutes);
 app.use(orderRoutes);
+app.use(chatRoutes);
 
 // 404 handler
 app.use((req, res) => {
