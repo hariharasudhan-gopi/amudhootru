@@ -10,6 +10,7 @@ import Header from './Components/js/Header.js';
 import AddProducts from './Components/js/AddProducts.js';
 import ManageOrders from './Components/js/ManageOrders.js';
 import About from './Components/js/About.js';
+import SupportChatbot from './Components/js/SupportChatbot.js';
 
 function App() {
 
@@ -85,6 +86,7 @@ function App() {
           <Route path="/manage-orders" element={<AdminRoute element={<ManageOrders userDetails={userDetails} />} />} />
           <Route path="/about" element={<About />} />
         </Routes>
+        <SupportChatbot />
       </BrowserRouter>  
       
     </div>
