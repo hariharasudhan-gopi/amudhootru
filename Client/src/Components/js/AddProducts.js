@@ -9,7 +9,7 @@ export default function AddProducts() {
     const [success, setSuccess] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
     // fields for update mode pre-fill
-    const [updateFields, setUpdateFields] = useState({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '', offerPrice: '' });
+    const [updateFields, setUpdateFields] = useState({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '', offerPrice: '', lowStockThreshold: '' });
     const [lookupCode, setLookupCode] = useState('');
     const [lookupError, setLookupError] = useState('');
 
@@ -19,7 +19,7 @@ export default function AddProducts() {
         return () => clearTimeout(t);
     }, [success]);
 
-    function validate(code, name, price, description, quantity, isUpdate, offerPrice) {
+    function validate(code, name, price, description, quantity, isUpdate, offerPrice, lowStockThreshold) {
         const errs = {};
         if (!code.trim()) errs.code = 'Product code is required.';
         if (!isUpdate) {
@@ -36,6 +36,9 @@ export default function AddProducts() {
             } else if (price && Number(offerPrice) >= Number(price)) {
                 errs.offerPrice = 'Offer price must be less than the price.';
             }
+        }
+        if (lowStockThreshold.trim() && (isNaN(lowStockThreshold) || Number(lowStockThreshold) < 0)) {
+            errs.lowStockThreshold = 'Enter a valid non-negative threshold.';
         }
         return errs;
     }
@@ -71,7 +74,8 @@ export default function AddProducts() {
                 quantity: p.availablequantity ?? '',
                 unit: p.unit || '',
                 img_src: p.img_src || '',
-                offerPrice: p.offerprice ?? ''
+                offerPrice: p.offerprice ?? '',
+                lowStockThreshold: p.lowstockthreshold ?? ''
             });
             setImagePreview(p.img_src || null);
         } catch (err) {
@@ -84,7 +88,7 @@ export default function AddProducts() {
         setErrors({});
         setSuccess('');
         setImagePreview(null);
-        setUpdateFields({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '', offerPrice: '' });
+        setUpdateFields({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '', offerPrice: '', lowStockThreshold: '' });
         setLookupCode('');
         setLookupError('');
     }
@@ -99,8 +103,9 @@ export default function AddProducts() {
         const quantity = event.target.quantity.value;
         const unit = event.target.unit.value;
         const offerPrice = isUpdate ? event.target.uofferPrice.value : event.target.offerPrice.value;
+        const lowStockThreshold = isUpdate ? event.target.ulowStockThreshold.value : event.target.lowStockThreshold.value;
 
-        const errs = validate(code, name, price, description, quantity, isUpdate, offerPrice);
+        const errs = validate(code, name, price, description, quantity, isUpdate, offerPrice, lowStockThreshold);
         if (Object.keys(errs).length > 0) {
             setErrors(errs);
             setSuccess('');
@@ -111,8 +116,8 @@ export default function AddProducts() {
         try {
             const url = isUpdate ? `${process.env.REACT_APP_API_URL}/products/update` : `${process.env.REACT_APP_API_URL}/products/add`;
             const body = isUpdate
-                ? { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview, offerprice: offerPrice.trim() ? Number(offerPrice) : null }
-                : { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview, offerprice: offerPrice.trim() ? Number(offerPrice) : null };
+                ? { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview, offerprice: offerPrice.trim() ? Number(offerPrice) : null, lowstockthreshold: lowStockThreshold.trim() ? Number(lowStockThreshold) : null }
+                : { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview, offerprice: offerPrice.trim() ? Number(offerPrice) : null, lowstockthreshold: lowStockThreshold.trim() ? Number(lowStockThreshold) : null };
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -193,6 +198,14 @@ export default function AddProducts() {
                         onChange={mode === 'update' ? e => setUpdateFields(f => ({...f, quantity: e.target.value})) : undefined}
                         className={`prodQuantity${errors.quantity ? ' inputErrorBorder' : ''}`} placeholder="Enter available quantity" />
                     {errors.quantity && <span className="inputError">{errors.quantity}</span>}
+                </label>
+                <label className="addProductsLabel">
+                    Low Stock Threshold <span className="optionalFieldHint">optional, defaults to 5</span>
+                    <input type="number" name={mode === 'update' ? 'ulowStockThreshold' : 'lowStockThreshold'} min="0"
+                        value={mode === 'update' ? updateFields.lowStockThreshold : undefined}
+                        onChange={mode === 'update' ? e => setUpdateFields(f => ({...f, lowStockThreshold: e.target.value})) : undefined}
+                        className={`prodLowStockThreshold${errors.lowStockThreshold ? ' inputErrorBorder' : ''}`} placeholder="Notify admin when stock reaches this level" />
+                    {errors.lowStockThreshold && <span className="inputError">{errors.lowStockThreshold}</span>}
                 </label>
                 <label className="addProductsLabel">
                     Offer Price (₹) <span className="optionalFieldHint">optional</span>
