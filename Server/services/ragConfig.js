@@ -1,7 +1,7 @@
 const path = require('path');
 
 const DEFAULTS = {
-  llmModel: 'gemini-2.0-flash',
+  llmModel: 'gemini-3.6-flash',
   embeddingModel: 'gemini-embedding-001',
   embeddingDimensions: 1536,
   topK: 5,
