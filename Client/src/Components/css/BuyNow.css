@@ -70,6 +70,23 @@
     accent-color: var(--brand-700);
 }
 
+.invoiceTotalRow{
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.invoiceOldTotal{
+    color: #8a9f7e;
+    text-decoration: line-through;
+    font-size: 0.9rem;
+}
+.invoiceSavings{
+    color: var(--brand-700);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
 @media (max-width: 768px) {
     .backtoProductPage{ width: 92%; }
     .buyNowContainer{
