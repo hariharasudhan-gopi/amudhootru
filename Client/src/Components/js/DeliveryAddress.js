@@ -107,7 +107,6 @@ export default function DeliveryAddress(props) {
                 return res.json();
             })
                 .then((data) => {
-                    console.log("Delivery Address Updated:", data);
                     alert(data.message);
                     props.setDeliveryAddress(newAddress);
                     props.setUserDetails(data.userDetails);
