@@ -27,10 +27,13 @@ CREATE TABLE IF NOT EXISTS productdetails (
     availablequantity INTEGER NOT NULL DEFAULT 0,
     img_src TEXT,
     unit VARCHAR(20),
-    offerprice NUMERIC
+    offerprice NUMERIC,
+    lowstockthreshold INTEGER NOT NULL DEFAULT 5
 );
 
 -- Order metadata: one row per placed order/invoice.
+-- deliverystatus: 0 = Order Placed, 1 = Order Shipped, 2 = Out for Delivery, 3 = Delivered,
+--                 -1 = reserved for stock-notify requests (see orderdetails.ordertype below), not a real order.
 CREATE TABLE IF NOT EXISTS ordermeta (
     id SERIAL PRIMARY KEY,
     userid INTEGER NOT NULL REFERENCES userinfo(id),
@@ -42,7 +45,7 @@ CREATE TABLE IF NOT EXISTS ordermeta (
     invoiceid VARCHAR(50) UNIQUE
 );
 
--- Cart items (ordertype = 0) and placed order line items (ordertype = 1).
+-- ordertype: 0 = cart item, 1 = placed order line item, 2 = "notify me when back in stock" request.
 CREATE TABLE IF NOT EXISTS orderdetails (
     id SERIAL PRIMARY KEY,
     productcode VARCHAR(50) NOT NULL REFERENCES productdetails(code),
@@ -63,3 +66,4 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_expire ON user_sessions (expire);
 
 -- Backward-compatible column additions for databases created before a column existed.
 ALTER TABLE productdetails ADD COLUMN IF NOT EXISTS offerprice NUMERIC;
+ALTER TABLE productdetails ADD COLUMN IF NOT EXISTS lowstockthreshold INTEGER NOT NULL DEFAULT 5;
