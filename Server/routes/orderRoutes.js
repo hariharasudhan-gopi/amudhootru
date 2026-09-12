@@ -67,7 +67,10 @@ router.post('/orders/create-payment', requireAuth, async function(req, res) {
             }
 
             const productDetails = productResult.rows[0];
-            productsPrice += productDetails.price * (product.quantity || 1);
+            const effectivePrice = productDetails.offerprice && Number(productDetails.offerprice) > 0
+                ? Number(productDetails.offerprice)
+                : Number(productDetails.price);
+            productsPrice += effectivePrice * (product.quantity || 1);
         }
 
         const options = {
