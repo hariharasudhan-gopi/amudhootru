@@ -125,10 +125,15 @@ router.get('/products/getcart', requireAuth, async function(req, res) {
 });
 
 router.post('/products/add', requireAdmin, async function(req, res) {
-    const { code, name, price, description, quantity, img_src, unit } = req.body;
+    const { code, name, price, description, quantity, img_src, unit, offerprice } = req.body;
 
     if (!code || !name || !price || !description || quantity === undefined) {
         return res.status(400).send('Missing required product fields.');
+    }
+
+    const offerPriceValue = (offerprice === undefined || offerprice === null || offerprice === '') ? null : Number(offerprice);
+    if (offerPriceValue !== null && (isNaN(offerPriceValue) || offerPriceValue <= 0 || offerPriceValue >= Number(price))) {
+        return res.status(400).send('Offer price must be a positive number less than the price.');
     }
 
     try {
@@ -141,8 +146,8 @@ router.post('/products/add', requireAdmin, async function(req, res) {
         }
 
         await pool.query(
-            'INSERT INTO productdetails (code, name, price, description, availablequantity, img_src, unit) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-            [code, name, price, description, quantity, img_src || null, unit || null]
+            'INSERT INTO productdetails (code, name, price, description, availablequantity, img_src, unit, offerprice) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+            [code, name, price, description, quantity, img_src || null, unit || null, offerPriceValue]
         );
 
         res.status(201).json({ message: 'Product added successfully.' });
@@ -169,17 +174,23 @@ router.get('/products/:code', async function(req, res) {
 });
 
 router.post('/products/update', requireAdmin, async function(req, res) {
-    const { code, name, price, description, quantity, img_src, unit } = req.body;
+    const { code, name, price, description, quantity, img_src, unit, offerprice } = req.body;
 
     if (!code) return res.status(400).send('Product code is required.');
 
     try {
         const existing = await pool.query(
-            'SELECT code FROM productdetails WHERE code = $1',
+            'SELECT code, price FROM productdetails WHERE code = $1',
             [code]
         );
         if (existing.rows.length === 0)
             return res.status(404).send('Product not found.');
+
+        const effectivePrice = price || Number(existing.rows[0].price);
+        const offerPriceValue = (offerprice === undefined || offerprice === null || offerprice === '') ? null : Number(offerprice);
+        if (offerPriceValue !== null && (isNaN(offerPriceValue) || offerPriceValue <= 0 || offerPriceValue >= Number(effectivePrice))) {
+            return res.status(400).send('Offer price must be a positive number less than the price.');
+        }
 
         await pool.query(
             `UPDATE productdetails
@@ -188,10 +199,11 @@ router.post('/products/update', requireAdmin, async function(req, res) {
                  description = COALESCE($4, description),
                  availablequantity = COALESCE($5, availablequantity),
                  img_src = COALESCE($6, img_src),
-                 unit = COALESCE($7, unit)
+                 unit = COALESCE($7, unit),
+                 offerprice = $8
              WHERE code = $1`,
             [code, name || null, price || null, description || null,
-             quantity !== undefined ? quantity : null, img_src || null, unit || null]
+             quantity !== undefined ? quantity : null, img_src || null, unit || null, offerPriceValue]
         );
 
         res.status(200).json({ message: 'Product updated successfully.' });
