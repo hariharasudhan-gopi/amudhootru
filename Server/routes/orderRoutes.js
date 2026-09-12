@@ -236,9 +236,6 @@ router.get('/orders/placed', requireAuth, async function(req, res) {
 
         const ordersWithDetails = await Promise.all(orderDetailsPromises);
 
-        console.log('✅ ordersWithDetails');
-        console.log(ordersWithDetails);
-
         const productDetailsPromises = ordersWithDetails.map(async (order) => {
             const productPromises = order.products.map(async (product) => {
                 const productResult = await pool.query(
@@ -254,13 +251,7 @@ router.get('/orders/placed', requireAuth, async function(req, res) {
                 };
             });
 
-            console.log('✅ productPromises');
-            console.log(productPromises);
-
             const productsWithDetails = await Promise.all(productPromises);
-
-            console.log('✅ productsWithDetails');
-            console.log(productsWithDetails);
 
             return {
                 ...order,
