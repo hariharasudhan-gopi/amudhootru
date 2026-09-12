@@ -1,8 +1,8 @@
 const path = require('path');
 
 const DEFAULTS = {
-  llmModel: 'gpt-4o-mini',
-  embeddingModel: 'text-embedding-3-small',
+  llmModel: 'gemini-2.0-flash',
+  embeddingModel: 'gemini-embedding-001',
   embeddingDimensions: 1536,
   topK: 5,
   maxMessageChars: 600,
@@ -23,8 +23,8 @@ function toBoundedNumber(value, fallback, min, max) {
 }
 
 function getRagConfig() {
-  const llmApiKey = process.env.LLM_API_KEY || process.env.OPENAI_API_KEY || '';
-  const embeddingApiKey = process.env.EMBEDDING_API_KEY || process.env.OPENAI_API_KEY || llmApiKey;
+  const llmApiKey = process.env.LLM_API_KEY || process.env.GEMINI_API_KEY || '';
+  const embeddingApiKey = process.env.EMBEDDING_API_KEY || process.env.GEMINI_API_KEY || llmApiKey;
 
   return {
     llmApiKey,
@@ -43,11 +43,11 @@ function validateRagConfig(config, options = { requireLlm: true }) {
   const errors = [];
 
   if (!config.embeddingApiKey) {
-    errors.push('Missing EMBEDDING_API_KEY (or OPENAI_API_KEY fallback)');
+    errors.push('Missing EMBEDDING_API_KEY (or GEMINI_API_KEY fallback)');
   }
 
   if (options.requireLlm && !config.llmApiKey) {
-    errors.push('Missing LLM_API_KEY (or OPENAI_API_KEY fallback)');
+    errors.push('Missing LLM_API_KEY (or GEMINI_API_KEY fallback)');
   }
 
   if (!config.embeddingModel) {

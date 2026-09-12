@@ -1,4 +1,4 @@
-const { getOpenAIClient } = require('./openaiClient');
+const { generateContent } = require('./geminiClient');
 const { getRagConfig } = require('./ragConfig');
 
 const SYSTEM_PROMPT = [
@@ -32,7 +32,6 @@ async function generateRagAnswer({ question, chunks }) {
   }
 
   const config = getRagConfig();
-  const client = getOpenAIClient(config.llmApiKey);
 
   const contextBlock = buildContextBlock(chunks);
   const userPrompt = [
@@ -41,16 +40,13 @@ async function generateRagAnswer({ question, chunks }) {
     `\nContext:\n${contextBlock}`,
   ].join('\n\n');
 
-  const completion = await client.chat.completions.create({
+  const answer = await generateContent({
+    apiKey: config.llmApiKey,
     model: config.llmModel,
+    systemInstruction: SYSTEM_PROMPT,
+    userPrompt,
     temperature: 0.1,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: userPrompt },
-    ],
   });
-
-  const answer = completion?.choices?.[0]?.message?.content?.trim();
 
   return {
     answer: answer || fallbackAnswer(),
