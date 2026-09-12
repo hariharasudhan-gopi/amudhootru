@@ -1,7 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 export default function Product(props) {
   const navigate = useNavigate();
+  const [notifyRequested, setNotifyRequested] = useState(false);
+  const [notifyError, setNotifyError] = useState('');
 
   function addToCart() {
     if (!props.isLoggedIn) {
@@ -54,7 +57,38 @@ export default function Product(props) {
   function goToCart() {
     navigate('/buynow');
   }
-  const unavailable = !props.availablequantity || props.availablequantity <= 0;
+
+  async function notifyMe() {
+    if (!props.isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+
+    setNotifyError('');
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/products/notifyme`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ productCode: props.code })
+      });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg);
+      }
+
+      setNotifyRequested(true);
+    } catch (error) {
+      console.error('Error requesting stock notification:', error);
+      setNotifyError('Something went wrong. Please try again.');
+    }
+  }
+
+  const availableQty = Number(props.availablequantity || 0);
+  const lowStockThreshold = Number(props.lowstockthreshold ?? 5);
+  const unavailable = availableQty <= 0;
+  const isLimitedStock = !unavailable && availableQty <= lowStockThreshold;
   const unitLabel = props.unit || 'kg';
   const organicTag = props.description?.toLowerCase().includes('organic') ? 'Organic-certified' : 'Farm fresh produce';
   const productRating = 4.6;
@@ -70,8 +104,8 @@ export default function Product(props) {
       <div className="product_visualArea">
         <div className="product_pill organicPill">100% Organic</div>
         <div className="product_pill stockPill">
-          <span className="stockDot" aria-hidden="true"></span>
-          {unavailable ? 'Out of stock' : 'In stock'}
+          <span className={`stockDot${isLimitedStock ? ' stockDot_limited' : ''}${unavailable ? ' stockDot_out' : ''}`} aria-hidden="true"></span>
+          {unavailable ? 'Out of stock' : isLimitedStock ? 'Limited stock' : 'In stock'}
         </div>
         {props.img_src && <img src={props.img_src} alt={props.name} className="product_image" width={props.dimensions?.width ?? 200} height={props.dimensions?.height ?? 200} />}
       </div>
@@ -99,15 +133,22 @@ export default function Product(props) {
         <div className="product_metaInfo">
           <p><i className="fa-solid fa-truck-fast"></i> Delivery by <strong>Tomorrow</strong></p>
           <p><i className="fa-regular fa-shield"></i> {organicTag}</p>
-          {!unavailable && <p className="stockWarning"><i className="fa-regular fa-square"></i> Only {props.availablequantity} {unitLabel} left in stock</p>}
+          {isLimitedStock && <p className="stockWarning"><i className="fa-regular fa-square"></i> Limited stock, order soon!</p>}
           {unavailable && <p className="unavailableText"><i className="fa-solid fa-circle-xmark"></i> Temporarily Unavailable</p>}
         </div>
 
         <span className="product_actions">
-          <button className={`addToCartButton${props.isInCart ? ' addToCartButton_inCart' : ''}`} onClick={props.isInCart ? goToCart : addToCart} disabled={unavailable}
-            style={unavailable ? { opacity: 0.45, cursor: 'not-allowed' } : {}}>
-            {props.isInCart ? (<><i className="fa-solid fa-cart-shopping"></i> In Cart</>) : 'Add to Cart'}
-          </button>
+          {unavailable ? (
+            <button className={`addToCartButton notifyMeButton${notifyRequested ? ' notifyMeButton_done' : ''}`} onClick={notifyMe} disabled={notifyRequested}>
+              <i className={`fa-${notifyRequested ? 'solid fa-circle-check' : 'regular fa-bell'}`}></i>
+              {notifyRequested ? ' We\'ll notify you' : ' Notify Me'}
+            </button>
+          ) : (
+            <button className={`addToCartButton${props.isInCart ? ' addToCartButton_inCart' : ''}`} onClick={props.isInCart ? goToCart : addToCart}>
+              {props.isInCart ? (<><i className="fa-solid fa-cart-shopping"></i> In Cart</>) : 'Add to Cart'}
+            </button>
+          )}
+          {notifyError && <span className="notifyMeError">{notifyError}</span>}
         </span>
         {props.count !== undefined && <p className="product_countText">count : {props.count}</p>}
       </div>
