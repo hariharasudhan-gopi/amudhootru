@@ -359,6 +359,17 @@
 .addToCartButton:hover{
     background-color: #1f3219;
 }
+.addToCartButton_inCart{
+    background-color: #f8f3e8;
+    color: #263c1f;
+    border: 2px solid #263c1f;
+}
+.addToCartButton_inCart:hover{
+    background-color: #eee6d2;
+}
+.addToCartButton_inCart i{
+    margin-right: 8px;
+}
 
 @media (max-width: 768px) {
     .productsPageContainer{
