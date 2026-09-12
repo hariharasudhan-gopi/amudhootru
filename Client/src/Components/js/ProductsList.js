@@ -2,7 +2,7 @@ import Product from './Product.js';
 import '../../Components/css/ProductList.css';
 import heroImage from '../../assets/images/background_image.png';
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 
 
@@ -11,10 +11,57 @@ export default function ProductsList(props) {
 
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [cartCodes, setCartCodes] = useState(new Set());
 
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  const fetchCartCodes = useCallback(async () => {
+    if (!props.isLoggedIn) {
+      setCartCodes(new Set());
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/products/getcart`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (response.status === 404) {
+        setCartCodes(new Set());
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch cart items');
+      }
+
+      const data = await response.json();
+      setCartCodes(new Set((data.products || []).map((product) => product.code || product.productcode)));
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+    }
+  }, [props.isLoggedIn]);
+
+  useEffect(() => {
+    fetchCartCodes();
+  }, [fetchCartCodes]);
+
+  useEffect(() => {
+    window.addEventListener('cart-count-changed', fetchCartCodes);
+    return () => window.removeEventListener('cart-count-changed', fetchCartCodes);
+  }, [fetchCartCodes]);
+
+  function handleAddedToCart(code) {
+    setCartCodes(prev => {
+      const next = new Set(prev);
+      next.add(code);
+      return next;
+    });
+  }
 
   useEffect(() => {
     function handleCatalogSearch(event) {
@@ -114,7 +161,7 @@ export default function ProductsList(props) {
         )}
         <span className="productsList">
           {filteredProducts.map(product => (
-            <Product key={product.id} {...product} isLoggedIn={props.isLoggedIn} userDetails={props.userDetails} setUserDetails={props.setUserDetails} setCartToast={props.setCartToast} /> 
+            <Product key={product.id} {...product} isLoggedIn={props.isLoggedIn} userDetails={props.userDetails} setUserDetails={props.setUserDetails} setCartToast={props.setCartToast} isInCart={cartCodes.has(product.code)} onAddedToCart={handleAddedToCart} /> 
           ))}
         </span>
       </section>
