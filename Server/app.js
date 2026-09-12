@@ -47,6 +47,11 @@ pool.query(ensureSessionTableSQL)
     console.error('Failed to ensure session table:', error.message);
   });
 
+pool.query('ALTER TABLE productdetails ADD COLUMN IF NOT EXISTS offerprice NUMERIC;')
+  .catch((error) => {
+    console.error('Failed to ensure offerprice column:', error.message);
+  });
+
 const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
   .split(',')
   .map((origin) => origin.trim())
