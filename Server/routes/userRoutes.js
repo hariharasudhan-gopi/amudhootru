@@ -39,25 +39,10 @@ router.post('/userLogin', async function(req, res) {
 
     try{
 
-        // const result = await pool.query('SELECT NOW()');
-        console.log('✅ PostgreSQL connected');
-        // console.log('Server time:', result.rows[0].now);
-
-        const dbresult = await pool.query(`
-          SELECT
-            version(),
-            current_database(),
-            current_user,
-            inet_server_addr()
-        `);
-        
-        console.log("DATABASE INFO:", dbresult.rows[0]);
-
         const result = await pool.query(
             'SELECT * FROM userInfo WHERE email = $1',
             [usermail]
         );
-        console.log('Query result:', result.rows);
         if (result.rows.length === 0) {
             return res.status(401).json({
                 success: false,
@@ -82,7 +67,6 @@ router.post('/userLogin', async function(req, res) {
         const userDetails = toUserDetails(user, cartItems.rows.length);
         req.session.user = userDetails;
 
-        console.log('User authenticated successfully');
         res.status(201);
         res.json({ message: 'Login successful', userDetails });
 
@@ -103,15 +87,10 @@ router.post('/userInfo', async function(req, res) {
 
     try{
 
-        // const result = await pool.query('SELECT NOW()');
-        console.log('✅ PostgreSQL connected');
-        // console.log('Server time:', result.rows[0].now);
-
         const result = await pool.query(
             'SELECT * FROM userInfo WHERE email = $1',
             [usermail]
         );
-        console.log('Query result:', result.rows);
         if (result.rows.length > 0) {
             return res.status(409).json({
                 success: false,
@@ -195,15 +174,10 @@ router.put('/userInfo/deliveryAddress', async function(req, res) {
 
     try{
 
-        // const result = await pool.query('SELECT NOW()');
-        console.log('✅ PostgreSQL connected');
-        // console.log('Server time:', result.rows[0].now);
-
         const ExistingUserResult = await pool.query(
             'SELECT * FROM userInfo WHERE email = $1',
             [usermail]
         );
-        console.log('Query result:', ExistingUserResult.rows);
         if (ExistingUserResult.rows.length === 0) {
             return res.status(404).json({
                 success: false,
