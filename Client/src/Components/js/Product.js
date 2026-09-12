@@ -33,7 +33,6 @@ export default function Product(props) {
         return res.json();
       })
       .then((data) => {
-        console.log(data.message);
         if (props.setUserDetails) {
           props.setUserDetails(prev => ({ ...prev, isCartItemsAvailable: true }));
         }
