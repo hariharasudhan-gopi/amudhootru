@@ -131,6 +131,12 @@
     font-size: 12px;
     color: #d70000;
 }
+.optionalFieldHint {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--brand-200);
+    margin-left: 4px;
+}
 .inputErrorBorder {
     border: 1px solid #b42323 !important;
 }
@@ -191,4 +197,31 @@
 }
 .lookupBtn:hover {
     background-color: var(--brand-800);
+}
+.addProductsSubmitWrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+.addProductsToast {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--brand-700);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    white-space: nowrap;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    box-shadow: 0 8px 18px rgba(54, 99, 29, 0.2);
+    animation: addProductsToastIn 0.22s ease;
+    z-index: 5;
+}
+@keyframes addProductsToastIn {
+    from { opacity: 0; transform: translate(-50%, -6px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
 }
