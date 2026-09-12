@@ -7,6 +7,12 @@ export default function DeliveryAddress(props) {
     const [formErrors, setFormErrors] = useState({});
     const deliveryAddress = props.userDetails && props.userDetails.deliveryAddress;
 
+    // Freeze the background page while this popup is open.
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = ''; };
+    }, []);
+
     const profileAddr = props.userDetails?.address?.dno
         ? { ...props.userDetails.address, contact: props.userDetails.address.contact || props.userDetails.phone, _isProfileAddress: true }
         : null;
@@ -16,6 +22,16 @@ export default function DeliveryAddress(props) {
         ...(profileAddr ? [profileAddr] : []),
         ...(deliveryAddress || []),
     ];
+
+    // profileAddr/address objects are recreated every render, so compare by value instead of reference
+    function isSameAddress(a, b) {
+        if (!a || !b) return false;
+        if (a._isProfileAddress || b._isProfileAddress) {
+            return !!a._isProfileAddress === !!b._isProfileAddress;
+        }
+        return a.dno === b.dno && a.street === b.street && a.city === b.city &&
+            a.state === b.state && a.zip === b.zip && a.country === b.country && a.contact === b.contact;
+    }
 
     // auto-select profile address as default when nothing is selected
     useEffect(() => {
@@ -101,7 +117,42 @@ export default function DeliveryAddress(props) {
             console.error("Error updating delivery address:", error);
         }
     }
+
+    async function deleteAddress(event, address, deliveryIndex) {
+        event.stopPropagation();
+        const confirmed = window.confirm('Remove this delivery address?');
+        if (!confirmed) return;
+
+        try {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/userInfo/deliveryAddress`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    usermail: props.userDetails && props.userDetails.email,
+                    index: deliveryIndex
+                })
+            });
+
+            if (!res.ok) {
+                const msg = await res.text();
+                throw new Error(msg);
+            }
+
+            const data = await res.json();
+            props.setUserDetails(data.userDetails);
+
+            if (isSameAddress(props.deliveryAddress, address)) {
+                const fallback = (data.userDetails.deliveryAddress && data.userDetails.deliveryAddress[0]) || profileAddr || null;
+                props.setDeliveryAddress(fallback);
+            }
+        } catch (error) {
+            alert('Failed to remove address: ' + error.message);
+        }
+    }
     return (
+        <>
+        <div className="deliveryAddressBackdrop" onClick={() => props.setShowDeliveryAddress(false)}></div>
         <div className="deliveryAddressContainer">
             <h3>Delivery Address</h3>
             <i
@@ -110,11 +161,13 @@ export default function DeliveryAddress(props) {
             ></i>
             {allAddresses.length > 0 && !showAddNewAddressForm ?
             <span className="deliveryAddressDetails">
-                {allAddresses.map((address, index) => (
+                {allAddresses.map((address, index) => {
+                    const deliveryIndex = profileAddr ? index - 1 : index;
+                    return (
                     <div key={index} className="deliveryAddressItem">
                     <div className="addressRadioWrap">
                         <input type="radio" name="deliveryAddress" value={index}
-                            checked={props.deliveryAddress === address}
+                            checked={isSameAddress(props.deliveryAddress, address)}
                             onChange={() => props.setDeliveryAddress(address)} />
                     </div>
                     <div className="addressCardText">
@@ -123,8 +176,16 @@ export default function DeliveryAddress(props) {
                         <p>{address ? `${address.state}, ${address.country}, ${address.zip}` : 'N/A'}</p>
                         <p>Contact: {address && address.contact ? address.contact : 'N/A'}</p>
                     </div>
+                    {!address._isProfileAddress && (
+                        <i
+                            className="fa-solid fa-trash deleteAddressIcon"
+                            title="Remove address"
+                            onClick={(event) => deleteAddress(event, address, deliveryIndex)}
+                        ></i>
+                    )}
                     </div>
-                ))}
+                    );
+                })}
                 <button className="addNewAddressButton" onClick={() => setShowAddNewAddressForm(true)}>Add New Address</button>
             </span>
             :
@@ -166,5 +227,6 @@ export default function DeliveryAddress(props) {
             </span>
             }
         </div>
+        </>
     );
 }
