@@ -239,6 +239,65 @@ router.put('/userInfo/deliveryAddress', async function(req, res) {
     }
 });
 
+router.delete('/userInfo/deliveryAddress', async function(req, res) {
+    var usermail = req.body.usermail;
+    var index = req.body.index;
+
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
+    if (req.session.user.email !== usermail) {
+        return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    if (typeof index !== 'number' || index < 0) {
+        return res.status(400).json({ success: false, message: 'Invalid address index' });
+    }
+
+    try{
+
+        const ExistingUserResult = await pool.query(
+            'SELECT * FROM userInfo WHERE email = $1',
+            [usermail]
+        );
+        if (ExistingUserResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const existingUser = ExistingUserResult.rows[0];
+        const existingDeliveryAddress = existingUser.deliveryaddress ? JSON.parse(existingUser.deliveryaddress) : [];
+
+        if (index >= existingDeliveryAddress.length) {
+            return res.status(400).json({ success: false, message: 'Address not found' });
+        }
+
+        const updatedDeliveryAddress = existingDeliveryAddress.filter((_, i) => i !== index);
+
+        const updateResult = await pool.query(
+            'UPDATE userInfo SET deliveryaddress = $1 WHERE email = $2 RETURNING *',
+            [JSON.stringify(updatedDeliveryAddress), usermail]
+        );
+        const updatedUser = updateResult.rows[0];
+        const userDetails = {
+            ...toUserDetails(updatedUser, req.session.user.isCartItemsAvailable ? 1 : 0),
+            isCartItemsAvailable: req.session.user.isCartItemsAvailable,
+        };
+        req.session.user = userDetails;
+
+        console.log('Delivery address removed successfully');
+        res.status(200);
+        res.json({ message: 'Delivery address removed successfully', userDetails });
+
+    }catch(err){
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 router.get('/auth/session', async function(req, res) {
     if (!req.session || !req.session.user) {
         return res.status(200).json({ isLoggedIn: false, userDetails: null });
