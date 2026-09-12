@@ -1,5 +1,5 @@
 const { getRagConfig } = require('./ragConfig');
-const { getOpenAIClient } = require('./openaiClient');
+const { embedTexts: geminiEmbedTexts } = require('./geminiClient');
 
 async function embedTexts(texts) {
   if (!Array.isArray(texts) || texts.length === 0) {
@@ -7,14 +7,13 @@ async function embedTexts(texts) {
   }
 
   const config = getRagConfig();
-  const client = getOpenAIClient(config.embeddingApiKey);
 
-  const response = await client.embeddings.create({
+  const embeddings = await geminiEmbedTexts({
+    apiKey: config.embeddingApiKey,
     model: config.embeddingModel,
-    input: texts,
+    texts,
+    outputDimensionality: config.embeddingDimensions,
   });
-
-  const embeddings = response.data.map((item) => item.embedding);
 
   if (!embeddings.length || !Array.isArray(embeddings[0])) {
     throw new Error('Embedding provider returned an invalid response');
