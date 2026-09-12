@@ -1,5 +1,5 @@
 import '../css/AddProducts.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AddProducts() {
@@ -9,11 +9,17 @@ export default function AddProducts() {
     const [success, setSuccess] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
     // fields for update mode pre-fill
-    const [updateFields, setUpdateFields] = useState({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '' });
+    const [updateFields, setUpdateFields] = useState({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '', offerPrice: '' });
     const [lookupCode, setLookupCode] = useState('');
     const [lookupError, setLookupError] = useState('');
 
-    function validate(code, name, price, description, quantity, isUpdate) {
+    useEffect(() => {
+        if (!success) return;
+        const t = setTimeout(() => setSuccess(''), 2500);
+        return () => clearTimeout(t);
+    }, [success]);
+
+    function validate(code, name, price, description, quantity, isUpdate, offerPrice) {
         const errs = {};
         if (!code.trim()) errs.code = 'Product code is required.';
         if (!isUpdate) {
@@ -24,6 +30,13 @@ export default function AddProducts() {
         }
         if (quantity === '' || isNaN(quantity) || Number(quantity) < 0)
             errs.quantity = 'Enter a valid non-negative quantity.';
+        if (offerPrice.trim()) {
+            if (isNaN(offerPrice) || Number(offerPrice) <= 0) {
+                errs.offerPrice = 'Enter a valid positive offer price.';
+            } else if (price && Number(offerPrice) >= Number(price)) {
+                errs.offerPrice = 'Offer price must be less than the price.';
+            }
+        }
         return errs;
     }
 
@@ -57,7 +70,8 @@ export default function AddProducts() {
                 description: p.description || '',
                 quantity: p.availablequantity ?? '',
                 unit: p.unit || '',
-                img_src: p.img_src || ''
+                img_src: p.img_src || '',
+                offerPrice: p.offerprice ?? ''
             });
             setImagePreview(p.img_src || null);
         } catch (err) {
@@ -70,7 +84,7 @@ export default function AddProducts() {
         setErrors({});
         setSuccess('');
         setImagePreview(null);
-        setUpdateFields({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '' });
+        setUpdateFields({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '', offerPrice: '' });
         setLookupCode('');
         setLookupError('');
     }
@@ -84,8 +98,9 @@ export default function AddProducts() {
         const description = isUpdate ? event.target.udescription.value : event.target.description.value;
         const quantity = event.target.quantity.value;
         const unit = event.target.unit.value;
+        const offerPrice = isUpdate ? event.target.uofferPrice.value : event.target.offerPrice.value;
 
-        const errs = validate(code, name, price, description, quantity, isUpdate);
+        const errs = validate(code, name, price, description, quantity, isUpdate, offerPrice);
         if (Object.keys(errs).length > 0) {
             setErrors(errs);
             setSuccess('');
@@ -96,8 +111,8 @@ export default function AddProducts() {
         try {
             const url = isUpdate ? `${process.env.REACT_APP_API_URL}/products/update` : `${process.env.REACT_APP_API_URL}/products/add`;
             const body = isUpdate
-                ? { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview }
-                : { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview };
+                ? { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview, offerprice: offerPrice.trim() ? Number(offerPrice) : null }
+                : { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview, offerprice: offerPrice.trim() ? Number(offerPrice) : null };
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -180,6 +195,14 @@ export default function AddProducts() {
                     {errors.quantity && <span className="inputError">{errors.quantity}</span>}
                 </label>
                 <label className="addProductsLabel">
+                    Offer Price (₹) <span className="optionalFieldHint">optional</span>
+                    <input type="number" name={mode === 'update' ? 'uofferPrice' : 'offerPrice'} min="0" step="0.01"
+                        value={mode === 'update' ? updateFields.offerPrice : undefined}
+                        onChange={mode === 'update' ? e => setUpdateFields(f => ({...f, offerPrice: e.target.value})) : undefined}
+                        className={`prodOfferPrice${errors.offerPrice ? ' inputErrorBorder' : ''}`} placeholder="Enter discounted offer price, if any" />
+                    {errors.offerPrice && <span className="inputError">{errors.offerPrice}</span>}
+                </label>
+                <label className="addProductsLabel">
                     Unit
                     <select name="unit"
                         value={mode === 'update' ? updateFields.unit : undefined}
@@ -210,8 +233,15 @@ export default function AddProducts() {
                     <img src={imagePreview} alt="Preview" className="imagePreview" />
                 )}
                 {errors.form && <span className="inputError formError">{errors.form}</span>}
-                {success && <span className="successMessage">{success}</span>}
-                <button className="addProductsButton" type="submit">{mode === 'add' ? 'Add Product' : 'Update Product'}</button>
+                <span className="addProductsSubmitWrap">
+                    <button className="addProductsButton" type="submit">{mode === 'add' ? 'Add Product' : 'Update Product'}</button>
+                    {success && (
+                        <span className="addProductsToast">
+                            <i className="fa-solid fa-circle-check"></i>
+                            <span>{success}</span>
+                        </span>
+                    )}
+                </span>
             </form>
         </div>
     );
