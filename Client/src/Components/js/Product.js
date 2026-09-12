@@ -40,6 +40,9 @@ export default function Product(props) {
         if (props.setCartToast) {
           props.setCartToast(props.name);
         }
+        if (props.onAddedToCart) {
+          props.onAddedToCart(props.code);
+        }
       })
       .catch((error) => {
         console.error('Error adding product to cart:', error);
@@ -48,13 +51,20 @@ export default function Product(props) {
       console.error('Error adding product to cart:', error);
     }
   }
+
+  function goToCart() {
+    navigate('/buynow');
+  }
   const unavailable = !props.availablequantity || props.availablequantity <= 0;
   const unitLabel = props.unit || 'kg';
   const organicTag = props.description?.toLowerCase().includes('organic') ? 'Organic-certified' : 'Farm fresh produce';
   const productRating = 4.6;
   const reviewsCount = 1204;
-  const oldPrice = Math.ceil(Number(props.price || 0) * 1.2);
-  const discountPercent = oldPrice > 0 ? Math.max(1, Math.round(((oldPrice - Number(props.price || 0)) / oldPrice) * 100)) : 0;
+  const basePrice = Number(props.price || 0);
+  const hasOffer = props.offerprice !== undefined && props.offerprice !== null && props.offerprice !== ''
+    && Number(props.offerprice) > 0 && Number(props.offerprice) < basePrice;
+  const displayPrice = hasOffer ? Number(props.offerprice) : basePrice;
+  const discountPercent = hasOffer ? Math.max(1, Math.round(((basePrice - Number(props.offerprice)) / basePrice) * 100)) : 0;
 
   return (
     <span className={`product_container product_${props.id}${unavailable ? ' product_unavailable' : ''}`}>
@@ -80,11 +90,11 @@ export default function Product(props) {
 
         <div className="priceAndOfferRow">
           <p className="product_price">
-            <span className="priceNow">₹{props.price}</span>
+            <span className="priceNow">₹{displayPrice}</span>
             <span className="priceUnit"> / {unitLabel}</span>
-            <span className="priceOld">₹{oldPrice}</span>
+            {hasOffer && <span className="priceOld">₹{basePrice}</span>}
           </p>
-          <span className="saveBadge">Save {discountPercent}%</span>
+          {hasOffer && <span className="saveBadge">Save {discountPercent}%</span>}
         </div>
 
         <div className="product_metaInfo">
@@ -95,8 +105,10 @@ export default function Product(props) {
         </div>
 
         <span className="product_actions">
-          <button className="addToCartButton" onClick={addToCart} disabled={unavailable}
-            style={unavailable ? { opacity: 0.45, cursor: 'not-allowed' } : {}}>Add to Cart</button>
+          <button className={`addToCartButton${props.isInCart ? ' addToCartButton_inCart' : ''}`} onClick={props.isInCart ? goToCart : addToCart} disabled={unavailable}
+            style={unavailable ? { opacity: 0.45, cursor: 'not-allowed' } : {}}>
+            {props.isInCart ? (<><i className="fa-solid fa-cart-shopping"></i> In Cart</>) : 'Add to Cart'}
+          </button>
         </span>
         {props.count !== undefined && <p className="product_countText">count : {props.count}</p>}
       </div>
