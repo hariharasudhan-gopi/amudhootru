@@ -12,15 +12,10 @@ router.get('/products', async function(req, res) {
 
     try{
 
-        // const result = await pool.query('SELECT NOW()');
-        console.log('✅ PostgreSQL connected');
-        // console.log('Server time:', result.rows[0].now);
-
         const result = await pool.query(
             'SELECT * FROM productdetails',
             []
         );
-        console.log('Query result:', result.rows);
         if (result.rows.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -29,7 +24,6 @@ router.get('/products', async function(req, res) {
         }
         const products = result.rows;
 
-        console.log('Products fetched successfully');
         res.status(200);
         res.json({ message: 'Products fetched successfully' ,
             products: products
@@ -51,14 +45,11 @@ router.post('/products/addtocart', requireAuth, async function(req, res) {
         // Here you can implement the logic to add the product to the user's cart in the database.
         // For example, you might have a "cart" table where you insert a new row with the product details.
 
-        console.log(`Adding product to cart: ${productCode} - ${productName}`);
-
         const result = await pool.query(
             'SELECT * FROM orderdetails WHERE productcode = $1 and ordertype = $2 and userid = $3',
             [productCode, 0, userId]
         );
 
-        console.log('Query result:', result.rows);
         if (result.rows.length === 0) {
             await pool.query(
                 'INSERT INTO orderdetails (productcode, userid, ordertype) VALUES ($1, $2, $3)',
@@ -66,8 +57,6 @@ router.post('/products/addtocart', requireAuth, async function(req, res) {
             );
         }
 
-        console.log('Product added to cart successfully');
-        
         // Simulate adding to cart (you would replace this with actual database logic)
         // await pool.query('INSERT INTO cart (product_code, product_name) VALUES ($1, $2)', [productCode, productName]);
 
@@ -85,15 +74,10 @@ router.get('/products/getcart', requireAuth, async function(req, res) {
 
     try{
 
-        // const result = await pool.query('SELECT NOW()');
-        console.log('✅ PostgreSQL connected');
-        // console.log('Server time:', result.rows[0].now);
-
         const result = await pool.query(
             'SELECT * FROM orderdetails where ordertype = $1 and userid = $2',
             [0, userId]
         );
-        console.log('Query result:', result.rows);
         if (result.rows.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -113,7 +97,6 @@ router.get('/products/getcart', requireAuth, async function(req, res) {
             }
         }
 
-        console.log('Products fetched successfully from cart');
         res.status(200);
         res.json({ message: 'Products fetched successfully from cart' ,
             products: products
