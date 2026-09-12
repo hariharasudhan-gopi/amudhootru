@@ -2,7 +2,7 @@ import BuyNowProductList from "./BuyNowProductList";
 import "../css/BuyNow.css";
 import DeliveryAddress from "./DeliveryAddress";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function publishCartCount(count) {
@@ -11,13 +11,47 @@ function publishCartCount(count) {
     }));
 }
 
+function getEffectivePrice(product) {
+    return product.offerprice && Number(product.offerprice) > 0 && Number(product.offerprice) < Number(product.price)
+        ? Number(product.offerprice)
+        : Number(product.price);
+}
+
 export default function BuyNow(props) {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
+    const [productsLoaded, setProductsLoaded] = useState(false);
+    const [selectedCodes, setSelectedCodes] = useState(new Set());
     const [totalPrice, setTotalPrice] = useState(0);
     const [showDeliveryAddress, setShowDeliveryAddress] = useState(false);
     const [deliveryAddress, setDeliveryAddress] = useState(props.userDetails && props.userDetails.deliveryAddress && props.userDetails.deliveryAddress.length ? props.userDetails.deliveryAddress[0] : null);
     const [paymentMethod, setPaymentMethod] = useState('online');
+
+    const selectedProducts = useMemo(
+        () => products.filter(product => selectedCodes.has(product.code)),
+        [products, selectedCodes]
+    );
+    const selectedTotal = useMemo(
+        () => selectedProducts.reduce((sum, product) => sum + getEffectivePrice(product) * (product.quantity || 1), 0),
+        [selectedProducts]
+    );
+    const selectedOriginalTotal = useMemo(
+        () => selectedProducts.reduce((sum, product) => sum + Number(product.price) * (product.quantity || 1), 0),
+        [selectedProducts]
+    );
+    const totalSavings = selectedOriginalTotal - selectedTotal;
+
+    function toggleProductSelection(productCode) {
+        setSelectedCodes(prev => {
+            const next = new Set(prev);
+            if (next.has(productCode)) {
+                next.delete(productCode);
+            } else {
+                next.add(productCode);
+            }
+            return next;
+        });
+    }
 
     function updateProductQuantity(productId, newQuantity) {
         setProducts(prevProducts => {
@@ -33,6 +67,13 @@ export default function BuyNow(props) {
     useEffect(() => {
         fetchProducts();
     }, []);
+
+    // Redirect to the shop page once the cart has been emptied (or was already empty).
+    useEffect(() => {
+        if (productsLoaded && products.length === 0) {
+            navigate('/');
+        }
+    }, [productsLoaded, products, navigate]);
 
     const fetchProducts = async () => {
         try {
@@ -55,11 +96,14 @@ export default function BuyNow(props) {
                 dimensions: p.dimensions ?? { width: 50, height: 50 }
             }));
             setProducts(normalised);
+            setSelectedCodes(new Set(normalised.map(p => p.code)));
             publishCartCount(normalised.length);
             const total = normalised.reduce((sum, product) => sum + product.price * (product.quantity || 1), 0);
             setTotalPrice(total);
         } catch (error) {
             console.error("Error fetching products:", error);
+        } finally {
+            setProductsLoaded(true);
         }
     };
 
@@ -72,6 +116,11 @@ export default function BuyNow(props) {
                 body: JSON.stringify({ productCode })
             });
             if (!res.ok) throw new Error(await res.text());
+            setSelectedCodes(prev => {
+                const next = new Set(prev);
+                next.delete(productCode);
+                return next;
+            });
             setProducts(prev => {
                 const removed = prev.find(p => p.code === productCode);
                 if (removed) setTotalPrice(t => t - removed.price * (removed.quantity || 1));
@@ -107,11 +156,6 @@ export default function BuyNow(props) {
     }
 
     async function placeOrder() {
-        const confirmed = window.confirm('Once your order is placed, it cannot be cancelled. Do you want to continue?');
-        if (!confirmed) {
-            return;
-        }
-
         if (!deliveryAddress) {
             alert("Please provide a delivery address before placing the order.");
             return;
@@ -119,6 +163,16 @@ export default function BuyNow(props) {
 
         if (products.length === 0) {
             alert('Your cart is empty. Add items before placing an order.');
+            return;
+        }
+
+        if (selectedProducts.length === 0) {
+            alert('Please select at least one product to place the order.');
+            return;
+        }
+
+        const confirmed = window.confirm('Once your order is placed, it cannot be cancelled. Do you want to continue?');
+        if (!confirmed) {
             return;
         }
 
@@ -130,10 +184,10 @@ export default function BuyNow(props) {
                     credentials: 'include',
                     body: JSON.stringify({
                         paymentMethod: 'cod',
-                        products: products.map(product => ({
+                        products: selectedProducts.map(product => ({
                             productId: product.code,
                             quantity: product.quantity || 1,
-                            price: product.price * (product.quantity || 1),
+                            price: getEffectivePrice(product) * (product.quantity || 1),
                             name: product.name
                         })),
                         deliveryAddress
@@ -167,7 +221,7 @@ export default function BuyNow(props) {
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({
-                    products: products.map(product => ({
+                    products: selectedProducts.map(product => ({
                         productId: product.code,
                         quantity: product.quantity || 1
                     }))
@@ -196,10 +250,10 @@ export default function BuyNow(props) {
                             credentials: 'include',
                             body: JSON.stringify({
                                 paymentMethod: 'online',
-                                products: products.map(product => ({
+                                products: selectedProducts.map(product => ({
                                     productId: product.code,
                                     quantity: product.quantity || 1,
-                                    price: product.price * (product.quantity || 1),
+                                    price: getEffectivePrice(product) * (product.quantity || 1),
                                     name: product.name
                                 })),
                                 deliveryAddress,
@@ -246,7 +300,15 @@ export default function BuyNow(props) {
                         <h3>Products Added to Place Order</h3>
                     </span>
                     {products.map(product => (
-                        <BuyNowProductList key={product.id} products={[product]} setTotalPrice={setTotalPrice} updateProductQuantity={updateProductQuantity} onRemove={removeFromCart} />
+                        <BuyNowProductList
+                            key={product.id}
+                            products={[product]}
+                            setTotalPrice={setTotalPrice}
+                            updateProductQuantity={updateProductQuantity}
+                            onRemove={removeFromCart}
+                            isSelected={selectedCodes.has(product.code)}
+                            onToggleSelect={() => toggleProductSelection(product.code)}
+                        />
                     ))}
                 </span>
                 <span className="buyNowRightContainer">
@@ -254,7 +316,14 @@ export default function BuyNow(props) {
                     <span className="invoiceDetails">
                         <span>
                             <h4>Invoice Details</h4>
-                            <p>Total Amount: ₹{totalPrice}</p>
+                            {totalSavings > 0 ? (
+                                <p className="invoiceTotalRow">
+                                    Total Amount: <span className="invoiceOldTotal">₹{selectedOriginalTotal}</span> ₹{selectedTotal}
+                                    <span className="invoiceSavings"> (You save ₹{totalSavings})</span>
+                                </p>
+                            ) : (
+                                <p>Total Amount: ₹{selectedTotal}</p>
+                            )}
                             <div className="paymentMethodPanel">
                                 <p className="paymentHeading">Payment Method</p>
                                 <label className="paymentOption">
