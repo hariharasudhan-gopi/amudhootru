@@ -114,7 +114,6 @@ export default function ProfileInfo(props) {
         address: address,
         profileimage: selectedImageBase64 || undefined
     };
-    console.log(userInfo);
     try {
       const response = fetch(
         `${process.env.REACT_APP_API_URL}/userInfo`,{
