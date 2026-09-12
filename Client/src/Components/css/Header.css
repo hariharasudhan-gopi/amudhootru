@@ -9,8 +9,11 @@
       radial-gradient(circle at 8% 10%, rgba(176, 214, 127, 0.22), transparent 44%);
     color: var(--text-900);
     min-height: 78px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
     z-index: 50;
     border-bottom: 1px solid rgba(140, 181, 96, 0.3);
     box-shadow: 0 10px 24px rgba(54, 99, 29, 0.12);
@@ -111,6 +114,23 @@
     color: #6e8c5f;
     background: rgba(176, 214, 127, 0.16);
     cursor: pointer;
+}
+
+.header_searchClearBtn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    color: #8a9f7e;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+}
+
+.header_searchClearBtn:hover {
+    color: #6e8c5f;
+    background: rgba(176, 214, 127, 0.16);
 }
 
 .cartIcon{

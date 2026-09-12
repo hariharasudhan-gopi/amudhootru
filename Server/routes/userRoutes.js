@@ -39,25 +39,10 @@ router.post('/userLogin', async function(req, res) {
 
     try{
 
-        // const result = await pool.query('SELECT NOW()');
-        console.log('✅ PostgreSQL connected');
-        // console.log('Server time:', result.rows[0].now);
-
-        const dbresult = await pool.query(`
-          SELECT
-            version(),
-            current_database(),
-            current_user,
-            inet_server_addr()
-        `);
-        
-        console.log("DATABASE INFO:", dbresult.rows[0]);
-
         const result = await pool.query(
             'SELECT * FROM userInfo WHERE email = $1',
             [usermail]
         );
-        console.log('Query result:', result.rows);
         if (result.rows.length === 0) {
             return res.status(401).json({
                 success: false,
@@ -82,7 +67,6 @@ router.post('/userLogin', async function(req, res) {
         const userDetails = toUserDetails(user, cartItems.rows.length);
         req.session.user = userDetails;
 
-        console.log('User authenticated successfully');
         res.status(201);
         res.json({ message: 'Login successful', userDetails });
 
@@ -103,15 +87,10 @@ router.post('/userInfo', async function(req, res) {
 
     try{
 
-        // const result = await pool.query('SELECT NOW()');
-        console.log('✅ PostgreSQL connected');
-        // console.log('Server time:', result.rows[0].now);
-
         const result = await pool.query(
             'SELECT * FROM userInfo WHERE email = $1',
             [usermail]
         );
-        console.log('Query result:', result.rows);
         if (result.rows.length > 0) {
             return res.status(409).json({
                 success: false,
@@ -195,15 +174,10 @@ router.put('/userInfo/deliveryAddress', async function(req, res) {
 
     try{
 
-        // const result = await pool.query('SELECT NOW()');
-        console.log('✅ PostgreSQL connected');
-        // console.log('Server time:', result.rows[0].now);
-
         const ExistingUserResult = await pool.query(
             'SELECT * FROM userInfo WHERE email = $1',
             [usermail]
         );
-        console.log('Query result:', ExistingUserResult.rows);
         if (ExistingUserResult.rows.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -232,6 +206,65 @@ router.put('/userInfo/deliveryAddress', async function(req, res) {
         console.log('Delivery address updated successfully');
         res.status(201);
         res.json({ message: 'Delivery address updated successfully', userDetails });
+
+    }catch(err){
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+router.delete('/userInfo/deliveryAddress', async function(req, res) {
+    var usermail = req.body.usermail;
+    var index = req.body.index;
+
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
+    if (req.session.user.email !== usermail) {
+        return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    if (typeof index !== 'number' || index < 0) {
+        return res.status(400).json({ success: false, message: 'Invalid address index' });
+    }
+
+    try{
+
+        const ExistingUserResult = await pool.query(
+            'SELECT * FROM userInfo WHERE email = $1',
+            [usermail]
+        );
+        if (ExistingUserResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const existingUser = ExistingUserResult.rows[0];
+        const existingDeliveryAddress = existingUser.deliveryaddress ? JSON.parse(existingUser.deliveryaddress) : [];
+
+        if (index >= existingDeliveryAddress.length) {
+            return res.status(400).json({ success: false, message: 'Address not found' });
+        }
+
+        const updatedDeliveryAddress = existingDeliveryAddress.filter((_, i) => i !== index);
+
+        const updateResult = await pool.query(
+            'UPDATE userInfo SET deliveryaddress = $1 WHERE email = $2 RETURNING *',
+            [JSON.stringify(updatedDeliveryAddress), usermail]
+        );
+        const updatedUser = updateResult.rows[0];
+        const userDetails = {
+            ...toUserDetails(updatedUser, req.session.user.isCartItemsAvailable ? 1 : 0),
+            isCartItemsAvailable: req.session.user.isCartItemsAvailable,
+        };
+        req.session.user = userDetails;
+
+        console.log('Delivery address removed successfully');
+        res.status(200);
+        res.json({ message: 'Delivery address removed successfully', userDetails });
 
     }catch(err){
         console.error(err);

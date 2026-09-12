@@ -17,6 +17,8 @@ const express = require("express");
 const cors = require('cors');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 const pool = require('./db/pool');
 
@@ -29,22 +31,12 @@ if (isProduction) {
   app.set('trust proxy', 1);
 }
 
-const ensureSessionTableSQL = `
-  CREATE TABLE IF NOT EXISTS user_sessions (
-    sid VARCHAR PRIMARY KEY,
-    sess JSON NOT NULL,
-    expire TIMESTAMP(6) NOT NULL
-  );
-`;
-
-const ensureSessionIndexSQL = `
-  CREATE INDEX IF NOT EXISTS idx_user_sessions_expire ON user_sessions (expire);
-`;
-
-pool.query(ensureSessionTableSQL)
-  .then(() => pool.query(ensureSessionIndexSQL))
+// Schema.sql is the single source of truth for all core tables; keep it updated
+// there instead of adding ad-hoc CREATE/ALTER statements here.
+const schemaSQL = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8');
+pool.query(schemaSQL)
   .catch((error) => {
-    console.error('Failed to ensure session table:', error.message);
+    console.error('Failed to apply database schema:', error.message);
   });
 
 const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
@@ -90,11 +82,13 @@ app.use(express.json({ limit: '5mb' }));
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 // use routes
 app.use(userRoutes);
 app.use(productRoutes);
 app.use(orderRoutes);
+app.use(chatRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -10,6 +10,7 @@ import Header from './Components/js/Header.js';
 import AddProducts from './Components/js/AddProducts.js';
 import ManageOrders from './Components/js/ManageOrders.js';
 import About from './Components/js/About.js';
+import SupportChatbot from './Components/js/SupportChatbot.js';
 
 function App() {
 
@@ -17,6 +18,17 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [cartToast, setCartToast] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [headerHeight, setHeaderHeight] = useState(0);
+
+  useEffect(() => {
+    function handleHeaderHeightChanged(event) {
+      const height = event.detail?.height;
+      if (height) setHeaderHeight(height);
+    }
+
+    window.addEventListener('header-height-changed', handleHeaderHeightChanged);
+    return () => window.removeEventListener('header-height-changed', handleHeaderHeightChanged);
+  }, []);
 
   useEffect(() => {
     async function restoreSession() {
@@ -75,16 +87,19 @@ function App() {
 
       <BrowserRouter>
         <Header isLoggedIn={isLoggedIn} userDetails={userDetails} setUserDetails={setUserDetails} setIsLoggedIn={setIsLoggedIn} cartToast={cartToast} setCartToast={setCartToast}/>
-        <Routes>
-          <Route path="/" element={<ProductsList isLoggedIn={isLoggedIn} userDetails={userDetails} setUserDetails={setUserDetails} setCartToast={setCartToast}/>} />
-          <Route path="/login" element={<Login setUserDetails={setUserDetails} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
-          <Route path="/signup" element={<SignUp setUserDetails={setUserDetails} setIsLoggedIn={setIsLoggedIn} />} />
-          <Route path="/buynow" element={<ProtectedRoute element={<BuyNow isLoggedIn={isLoggedIn} userDetails={userDetails} setUserDetails={setUserDetails} />} />} />
-          <Route path="/track-orders" element={<ProtectedRoute element={<TrackOrders userDetails={userDetails} />} />} />
-          <Route path="/add-products" element={<AdminRoute element={<AddProducts userDetails={userDetails} setUserDetails={setUserDetails} />} />} />
-          <Route path="/manage-orders" element={<AdminRoute element={<ManageOrders userDetails={userDetails} />} />} />
-          <Route path="/about" element={<About />} />
-        </Routes>
+        <div className="app_main" style={{ paddingTop: headerHeight }}>
+          <Routes>
+            <Route path="/" element={<ProductsList isLoggedIn={isLoggedIn} userDetails={userDetails} setUserDetails={setUserDetails} setCartToast={setCartToast}/>} />
+            <Route path="/login" element={<Login setUserDetails={setUserDetails} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
+            <Route path="/signup" element={<SignUp setUserDetails={setUserDetails} setIsLoggedIn={setIsLoggedIn} />} />
+            <Route path="/buynow" element={<ProtectedRoute element={<BuyNow isLoggedIn={isLoggedIn} userDetails={userDetails} setUserDetails={setUserDetails} />} />} />
+            <Route path="/track-orders" element={<ProtectedRoute element={<TrackOrders userDetails={userDetails} />} />} />
+            <Route path="/add-products" element={<AdminRoute element={<AddProducts userDetails={userDetails} setUserDetails={setUserDetails} />} />} />
+            <Route path="/manage-orders" element={<AdminRoute element={<ManageOrders userDetails={userDetails} />} />} />
+            <Route path="/about" element={<About />} />
+          </Routes>
+        </div>
+        <SupportChatbot />
       </BrowserRouter>  
       
     </div>

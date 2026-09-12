@@ -1,3 +1,9 @@
+.profileBackdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 30, 15, 0.45);
+    z-index: 900;
+}
 .profileInfoContainer{
     height: 100vh;
     width: 33%;
@@ -5,7 +11,7 @@
     position: fixed;
     top: 0;
     right: 0;
-    z-index: 10;
+    z-index: 901;
     padding: 20px 20px 70px;
     color: black;
     border-radius: 20px;
@@ -20,7 +26,7 @@
     background: #fff;
     border-top: 1px solid #f0f0f0;
     border-radius: 0 0 20px 20px;
-    z-index: 11;
+    z-index: 902;
 }
 .profileLogoutBtn {
     width: 100%;

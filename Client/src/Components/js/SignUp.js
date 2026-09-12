@@ -42,7 +42,6 @@ export default function SignUp(props) {
             phone: phone,
             password: password
         };
-        console.log(userInfo);
         try {
         const response = fetch(
           `${process.env.REACT_APP_API_URL}/userInfo`,{

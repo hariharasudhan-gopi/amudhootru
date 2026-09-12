@@ -23,6 +23,12 @@
     color: var(--text-700);
     margin: 2px 0 0;
 }
+.productOldPrice {
+    margin-left: 8px;
+    font-size: 0.82rem;
+    color: #8a9f7e;
+    text-decoration: line-through;
+}
 .buyNowProductListContainer p, .buyNowProductListContainer h3{
     margin: auto;
 }
@@ -48,4 +54,18 @@
 .removeFromCartBtn:hover {
     background: #e05353;
     color: #fff;
+}
+.buyNowProductSelect {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.orderIncludeCheckbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--brand-700);
+    cursor: pointer;
+}
+.buyNowProductUnselected {
+    opacity: 0.5;
 }

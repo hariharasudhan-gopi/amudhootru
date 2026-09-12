@@ -10,6 +10,7 @@ const {
     sendPaymentSuccessEmail
 } = require("./emailService");
 const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { checkLowStockAndAlertAdmin } = require('../services/stockAlerts');
 
 require("dotenv").config();
 const pool = require('../db/pool');
@@ -67,7 +68,10 @@ router.post('/orders/create-payment', requireAuth, async function(req, res) {
             }
 
             const productDetails = productResult.rows[0];
-            productsPrice += productDetails.price * (product.quantity || 1);
+            const effectivePrice = productDetails.offerprice && Number(productDetails.offerprice) > 0
+                ? Number(productDetails.offerprice)
+                : Number(productDetails.price);
+            productsPrice += effectivePrice * (product.quantity || 1);
         }
 
         const options = {
@@ -149,11 +153,30 @@ router.post('/orders/place', requireAuth, async function(req, res) {
                 'INSERT INTO orderdetails (productcode, userid, quantity, ordertype, invoiceid) VALUES ($1, $2, $3, $4, $5)',
                 [product.productId, userId, product.quantity, 1, invoiceNumber]
             );
+
+            const productBefore = await pool.query(
+                'SELECT name, availablequantity, lowstockthreshold FROM productdetails WHERE code = $1',
+                [product.productId]
+            );
+            const previousQuantity = Number(productBefore.rows[0]?.availablequantity ?? 0);
+            const decrementQty = product.quantity || 1;
+            const newQuantity = Math.max(previousQuantity - decrementQty, 0);
+
             // decrement stock; floor at 0 to prevent negative values
             await pool.query(
                 'UPDATE productdetails SET availablequantity = GREATEST(availablequantity - $1, 0) WHERE code = $2',
-                [product.quantity || 1, product.productId]
+                [decrementQty, product.productId]
             );
+
+            if (productBefore.rows[0]) {
+                await checkLowStockAndAlertAdmin({
+                    code: product.productId,
+                    name: productBefore.rows[0].name,
+                    previousQuantity,
+                    newQuantity,
+                    threshold: productBefore.rows[0].lowstockthreshold
+                });
+            }
         }
 
         await pool.query(
@@ -197,7 +220,7 @@ router.get('/orders/placed', requireAuth, async function(req, res) {
 
     try {
         const result = await pool.query(
-            'SELECT * FROM ordermeta WHERE userid = $1',
+            'SELECT * FROM ordermeta WHERE userid = $1 AND deliverystatus != -1',
             [userId]
         );
 
@@ -233,9 +256,6 @@ router.get('/orders/placed', requireAuth, async function(req, res) {
 
         const ordersWithDetails = await Promise.all(orderDetailsPromises);
 
-        console.log('✅ ordersWithDetails');
-        console.log(ordersWithDetails);
-
         const productDetailsPromises = ordersWithDetails.map(async (order) => {
             const productPromises = order.products.map(async (product) => {
                 const productResult = await pool.query(
@@ -251,13 +271,7 @@ router.get('/orders/placed', requireAuth, async function(req, res) {
                 };
             });
 
-            console.log('✅ productPromises');
-            console.log(productPromises);
-
             const productsWithDetails = await Promise.all(productPromises);
-
-            console.log('✅ productsWithDetails');
-            console.log(productsWithDetails);
 
             return {
                 ...order,
@@ -281,7 +295,7 @@ router.get('/orders/all', requireAdmin, async function(req, res) {
         let query = `SELECT om.*, ui.name AS username, ui.email AS useremail
                      FROM ordermeta om
                      LEFT JOIN userinfo ui ON ui.id = om.userid
-                     WHERE 1=1`;
+                     WHERE om.deliverystatus != -1`;
         const params = [];
 
         if (status !== undefined && status !== '') {

@@ -235,8 +235,64 @@ async function sendPaymentSuccessEmail({ customerName, customerEmail, invoiceNum
   });
 }
 
+async function sendLowStockAlertEmail({ adminEmail, productCode, productName, availableQuantity, threshold }) {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#333;">
+      <div style="background:linear-gradient(160deg,#b8861a 0%,#d9a52b 100%);padding:32px 28px;border-radius:12px 12px 0 0;">
+        <h1 style="color:white;margin:0;font-size:1.5rem;">Amudhootru</h1>
+        <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;">Low stock alert</p>
+      </div>
+      <div style="background:#fffaf0;padding:28px;border:1px solid #f2e2b8;border-top:none;border-radius:0 0 12px 12px;">
+        <p><strong>${productName}</strong> (code: ${productCode}) has reached its low stock threshold.</p>
+        <div style="background:#fdf2d6;border-left:4px solid #b8861a;padding:14px 18px;border-radius:6px;margin:20px 0;">
+          <p style="margin:0;"><strong>Available Quantity:</strong> ${availableQuantity}</p>
+          <p style="margin:6px 0 0;"><strong>Threshold:</strong> ${threshold}</p>
+        </div>
+        <p>Please restock this product soon to avoid running out.</p>
+        <p style="margin-top:24px;">Amudhootru System</p>
+      </div>
+    </div>
+  `;
+
+  return await sendEmailWithFallback({
+    from: `Amudhootru <${FROM_EMAIL}>`,
+    to: adminEmail,
+    subject: `Low stock alert: ${productName} (${productCode})`,
+    html
+  });
+}
+
+async function sendBackInStockEmail({ customerEmail, productName, supportEmail }) {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#333;">
+      <div style="background:linear-gradient(160deg,#1a7a4a 0%,#2ea84d 100%);padding:32px 28px;border-radius:12px 12px 0 0;">
+        <h1 style="color:white;margin:0;font-size:1.5rem;">Amudhootru</h1>
+        <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;">Good news, it's back in stock!</p>
+      </div>
+      <div style="background:#f6fff8;padding:28px;border:1px solid #d7f2df;border-top:none;border-radius:0 0 12px 12px;">
+        <p>Hi there,</p>
+        <p><strong>${productName}</strong> is back in stock and ready to order.</p>
+        <div style="text-align:center;margin:28px 0;">
+          <a href="https://amudhootru.com" style="background:#1a7a4a;color:white;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.95rem;">Shop Now</a>
+        </div>
+        <p>If you have any questions, contact us at <a href="mailto:${supportEmail}" style="color:#1a7a4a;">${supportEmail}</a>.</p>
+        <p style="margin-top:24px;">Warm regards,<br><strong>The Amudhootru Team</strong></p>
+      </div>
+    </div>
+  `;
+
+  return await sendEmailWithFallback({
+    from: `Amudhootru <${FROM_EMAIL}>`,
+    to: customerEmail,
+    subject: `${productName} is back in stock!`,
+    html
+  });
+}
+
 module.exports = {
   sendInvoiceEmail,
   sendDeliveryEmail,
-  sendPaymentSuccessEmail
+  sendPaymentSuccessEmail,
+  sendLowStockAlertEmail,
+  sendBackInStockEmail
 };

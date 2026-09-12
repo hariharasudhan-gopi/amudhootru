@@ -1,6 +1,6 @@
 import "../css/Header.css";
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProfileImage from "../../assets/images/profile_image_template.png";
 import Logo from "../../assets/images/logo.png";
@@ -16,6 +16,7 @@ export default function Header({
 }) {
     const navigate = useNavigate();
     const location = useLocation();
+    const headerRef = useRef(null);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [cartItemsCount, setCartItemsCount] = useState(0);
@@ -25,6 +26,22 @@ export default function Header({
         const t = setTimeout(() => setCartToast(null), 2500);
         return () => clearTimeout(t);
     }, [cartToast, setCartToast]);
+
+    // Header is fixed to the viewport; broadcast its height so the page content can offset itself.
+    useEffect(() => {
+        const node = headerRef.current;
+        if (!node || typeof ResizeObserver === 'undefined') return;
+
+        const observer = new ResizeObserver(() => {
+            // Use the rendered border-box height; contentRect excludes padding/border and underreports it.
+            const height = node.getBoundingClientRect().height;
+            if (height) {
+                window.dispatchEvent(new CustomEvent('header-height-changed', { detail: { height } }));
+            }
+        });
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         async function fetchCartCount() {
@@ -106,6 +123,12 @@ export default function Header({
         window.dispatchEvent(new CustomEvent('catalog-search', { detail: term }));
     }
 
+    function clearSearch() {
+        setSearchText('');
+        navigate('/');
+        window.dispatchEvent(new CustomEvent('catalog-search', { detail: '' }));
+    }
+
     const cartCount = cartItemsCount;
     const isAboutActive = location.pathname === '/about';
 
@@ -123,7 +146,7 @@ export default function Header({
     }
 
     return (
-        <div className="header_container">
+        <div className="header_container" ref={headerRef}>
             <span className="header_brand" onClick={() => navigate('/')}>
                 <img src={Logo} alt="Amudhootru logo" className="header_logo" />
             </span>
@@ -143,6 +166,11 @@ export default function Header({
                         placeholder="Search products..."
                         aria-label="Search products"
                     />
+                    {searchText && (
+                        <button className="header_searchClearBtn" type="button" aria-label="Clear search" onClick={clearSearch}>
+                            <i className="fa-solid fa-xmark"></i>
+                        </button>
+                    )}
                     <button className="header_searchBtn" type="submit" aria-label="Search">
                         <i className="fa-solid fa-magnifying-glass"></i>
                     </button>

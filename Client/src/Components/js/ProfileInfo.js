@@ -1,6 +1,6 @@
 import "../css/ProfileInfo.css";
 import ProfileImage from "../../assets/images/profile_image_template.png";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 
@@ -13,6 +13,12 @@ export default function ProfileInfo(props) {
   const [completedCrop, setCompletedCrop] = useState(null);
   const fileInputRef = useRef(null);
   const cropImgRef = useRef(null);
+
+  // Freeze the background page while this popup is open.
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
 
   function handleImageClick() {
     if (isEditing) fileInputRef.current.click();
@@ -108,7 +114,6 @@ export default function ProfileInfo(props) {
         address: address,
         profileimage: selectedImageBase64 || undefined
     };
-    console.log(userInfo);
     try {
       const response = fetch(
         `${process.env.REACT_APP_API_URL}/userInfo`,{
@@ -144,6 +149,7 @@ export default function ProfileInfo(props) {
   }
   return (
     <>
+    <div className="profileBackdrop" onClick={() => props.setIsProfileOpen(false)}></div>
     <div className="profileInfoContainer">
       {!isEditing ? <span className="profilePreview">
         <span className="profileInfoHeader">
