@@ -64,6 +64,22 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 CREATE INDEX IF NOT EXISTS idx_user_sessions_expire ON user_sessions (expire);
 
+-- One review per user per product per order; rating 1-5 with optional free text.
+CREATE TABLE IF NOT EXISTS productreviews (
+    id SERIAL PRIMARY KEY,
+    userid INTEGER NOT NULL REFERENCES userinfo(id),
+    productcode VARCHAR(50) NOT NULL REFERENCES productdetails(code),
+    invoiceid VARCHAR(50) NOT NULL REFERENCES ordermeta(invoiceid),
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    reviewtext TEXT,
+    createdat TIMESTAMP NOT NULL DEFAULT NOW(),
+    updatedat TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE (userid, productcode, invoiceid)
+);
+
+CREATE INDEX IF NOT EXISTS idx_productreviews_productcode ON productreviews (productcode);
+
 -- Backward-compatible column additions for databases created before a column existed.
 ALTER TABLE productdetails ADD COLUMN IF NOT EXISTS offerprice NUMERIC;
 ALTER TABLE productdetails ADD COLUMN IF NOT EXISTS lowstockthreshold INTEGER NOT NULL DEFAULT 5;
+
