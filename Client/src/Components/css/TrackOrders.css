@@ -163,3 +163,83 @@
 .productsInnerTable tbody tr:hover td {
     background: rgba(202, 231, 207, 0.42);
 }
+
+/* ── product review cell ──────────────────────────── */
+.reviewCell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 160px;
+}
+.reviewCellText {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #555;
+    font-style: italic;
+    overflow-wrap: anywhere;
+}
+.reviewCellEditBtn {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: var(--brand-700);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.reviewCellEditBtn:hover {
+    color: var(--brand-900);
+}
+.reviewCell_editing {
+    gap: 6px;
+}
+.reviewCellTextarea {
+    width: 100%;
+    min-width: 160px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    resize: vertical;
+    box-sizing: border-box;
+}
+.reviewCellError {
+    margin: 0;
+    color: #c0392b;
+    font-size: 0.76rem;
+}
+.reviewCellActions {
+    display: flex;
+    gap: 8px;
+}
+.reviewCellSaveBtn {
+    background-color: var(--brand-700);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.reviewCellSaveBtn:hover {
+    background-color: var(--brand-800);
+}
+.reviewCellSaveBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.reviewCellCancelBtn {
+    background: none;
+    border: 1px solid var(--card-border);
+    color: #555;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
