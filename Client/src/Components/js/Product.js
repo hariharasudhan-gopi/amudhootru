@@ -123,8 +123,16 @@ export default function Product(props) {
   const basePrice = Number(props.price || 0);
   const hasOffer = props.offerprice !== undefined && props.offerprice !== null && props.offerprice !== ''
     && Number(props.offerprice) > 0 && Number(props.offerprice) < basePrice;
-  const displayPrice = hasOffer ? Number(props.offerprice) : basePrice;
-  const discountPercent = hasOffer ? Math.max(1, Math.round(((basePrice - Number(props.offerprice)) / basePrice) * 100)) : 0;
+  const isPrivilegeUser = Boolean(props.userDetails?.isPrivilege);
+  const hasPrivilegeOffer = isPrivilegeUser && props.privilegeofferprice !== undefined && props.privilegeofferprice !== null && props.privilegeofferprice !== ''
+    && Number(props.privilegeofferprice) > 0 && Number(props.privilegeofferprice) < basePrice;
+  const publicOfferPrice = hasOffer ? Number(props.offerprice) : null;
+  const privilegeOfferPrice = hasPrivilegeOffer ? Number(props.privilegeofferprice) : null;
+  // Privilege pricing wins whenever it's at least as good as the public offer.
+  const isPrivilegePriceApplied = privilegeOfferPrice !== null && (publicOfferPrice === null || privilegeOfferPrice <= publicOfferPrice);
+  const displayPrice = isPrivilegePriceApplied ? privilegeOfferPrice : (publicOfferPrice !== null ? publicOfferPrice : basePrice);
+  const hasAnyOffer = isPrivilegePriceApplied || publicOfferPrice !== null;
+  const discountPercent = hasAnyOffer ? Math.max(1, Math.round(((basePrice - displayPrice) / basePrice) * 100)) : 0;
 
   return (
     <span className={`product_container product_${props.id}${unavailable ? ' product_unavailable' : ''}`}>
@@ -162,9 +170,10 @@ export default function Product(props) {
           <p className="product_price">
             <span className="priceNow">₹{displayPrice}</span>
             <span className="priceUnit"> / {unitLabel}</span>
-            {hasOffer && <span className="priceOld">₹{basePrice}</span>}
+            {hasAnyOffer && <span className="priceOld">₹{basePrice}</span>}
           </p>
-          {hasOffer && <span className="saveBadge">Save {discountPercent}%</span>}
+          {isPrivilegePriceApplied && <span className="privilegePriceBadge"><i className="fa-solid fa-star"></i> Privilege Price · Save {discountPercent}%</span>}
+          {hasAnyOffer && !isPrivilegePriceApplied && <span className="saveBadge">Save {discountPercent}%</span>}
         </div>
 
         <div className="product_metaInfo">
