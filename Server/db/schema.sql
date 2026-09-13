@@ -48,13 +48,15 @@ CREATE TABLE IF NOT EXISTS ordermeta (
 );
 
 -- ordertype: 0 = cart item, 1 = placed order line item, 2 = "notify me when back in stock" request.
+-- price: unit price actually paid at order time (after offer/privilege discount); NULL for cart rows.
 CREATE TABLE IF NOT EXISTS orderdetails (
     id SERIAL PRIMARY KEY,
     productcode VARCHAR(50) NOT NULL REFERENCES productdetails(code),
     userid INTEGER NOT NULL REFERENCES userinfo(id),
     quantity INTEGER,
     ordertype INTEGER NOT NULL DEFAULT 0,
-    invoiceid VARCHAR(50) REFERENCES ordermeta(invoiceid)
+    invoiceid VARCHAR(50) REFERENCES ordermeta(invoiceid),
+    price INTEGER
 );
 
 -- express-session store (connect-pg-simple).
@@ -120,6 +122,13 @@ BEGIN
     ) THEN
         UPDATE userinfo SET profiletype = 2 WHERE isprivilege = TRUE AND profiletype = 0;
         ALTER TABLE userinfo DROP COLUMN isprivilege;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'orderdetails' AND column_name = 'price'
+    ) THEN
+        ALTER TABLE orderdetails ADD COLUMN price INTEGER;
     END IF;
 END$$;
 
