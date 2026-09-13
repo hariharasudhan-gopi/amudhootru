@@ -9,7 +9,9 @@ function getEffectivePrice(product) {
 
 export default function BuyNowProductList(props) {
     const unitPrice = getEffectivePrice(props.products[0]);
-    const hasOffer = unitPrice < Number(props.products[0].price);
+    const basePrice = Number(props.products[0].price);
+    const hasOffer = unitPrice < basePrice;
+    const discountPercent = hasOffer ? Math.max(1, Math.round(((basePrice - unitPrice) / basePrice) * 100)) : 0;
     const initialQuantity = Number(props.products[0].quantity) || 1;
     const [productPrice, setProductPrice] = useState(unitPrice * initialQuantity);
     const [productQuantity, setProductQuantity] = useState(initialQuantity);
@@ -36,43 +38,63 @@ export default function BuyNowProductList(props) {
         <div className="buyNowProductListContainer">
             {props.products.map((product) => (
                 <div key={product.id} className={`buyNowProduct${props.isSelected ? '' : ' buyNowProductUnselected'}`}>
-                    <span className="buyNowProductHeader">
-                        <span className="buyNowProductSelect">
-                            <input
-                                type="checkbox"
-                                className="orderIncludeCheckbox"
-                                checked={!!props.isSelected}
-                                onChange={props.onToggleSelect}
-                                title="Include this product in the order"
-                            />
+                    <label className="buyNowProductSelect" title="Include this product in the order">
+                        <input
+                            type="checkbox"
+                            className="orderIncludeCheckbox"
+                            checked={!!props.isSelected}
+                            onChange={props.onToggleSelect}
+                        />
+                    </label>
+
+                    <span className="buyNowProductImage">
+                        {product.img_src && <img src={product.img_src} alt={product.name} width={product.dimensions.width} height={product.dimensions.height} />}
+                    </span>
+
+                    <span className="buyNowProductInfo">
+                        <span className="buyNowProductNameRow">
                             <h3>{product.name}</h3>
+                            {hasOffer && <span className="buyNowOfferBadge">{discountPercent}% OFF</span>}
                         </span>
-                        <button className="removeFromCartBtn" onClick={() => props.onRemove(product.code)} title="Remove from cart">
-                            <i className="fa-solid fa-trash"></i> Remove
-                        </button>
-                    </span>
-                    <span className="productDetails">
-                        <span className="priceDetails">
-                            <span className="productPrice">
-                                <p>
-                                    ₹{unitPrice}{props.products[0].unit ? '/' + props.products[0].unit : ''}
-                                    {hasOffer && <span className="productOldPrice">₹{props.products[0].price}</span>}
-                                </p>
-                                {productQuantity > 1 && <p className="productSubtotal">Subtotal: ₹{productPrice}</p>}
-                            </span>
+
+                        <span className="buyNowPriceRow">
+                            <span className="buyNowUnitPrice">₹{unitPrice}{product.unit ? '/' + product.unit : ''}</span>
+                            {hasOffer && <span className="productOldPrice">₹{basePrice}</span>}
+                        </span>
+
+                        <span className="buyNowQuantityRow">
                             <span className="quantityInfo">
-                                <p>Quantity:</p>
-                                <i className="fa-solid fa-plus" onClick={increaseQuantity}></i>
-                                <p>{productQuantity}{props.products[0].unit ? ' ' + props.products[0].unit : ''}</p>
-                                <i className="fa-solid fa-minus"
+                                <span className="qtyLabel">Quantity:</span>
+                                <span className="buyNowQtyStepper">
+                                    <button
+                                        type="button"
+                                        className="buyNowQtyBtn"
                                         onClick={decreaseQuantity}
-                                        style={productQuantity <= 1 ? { opacity: 0.35, cursor: 'not-allowed', pointerEvents: 'none' } : {}}></i>
-                            </span>    
-                        </span>
-                        <span className="productImage">
-                            {product.img_src && <img src={product.img_src} alt={product.name} width={product.dimensions.width} height={product.dimensions.height} />}
+                                        disabled={productQuantity <= 1}
+                                        title="Decrease quantity"
+                                    >
+                                        <i className="fa-solid fa-minus"></i>
+                                    </button>
+                                    <span className="qtyStepValue">{productQuantity}{product.unit ? ' ' + product.unit : ''}</span>
+                                    <button
+                                        type="button"
+                                        className="buyNowQtyBtn"
+                                        onClick={increaseQuantity}
+                                        title="Increase quantity"
+                                    >
+                                        <i className="fa-solid fa-plus"></i>
+                                    </button>
+                                </span>
+                            </span>
+                            <span className="buyNowItemTotal">
+                                Item Total: <strong>₹{productPrice}</strong>
+                            </span>
                         </span>
                     </span>
+
+                    <button className="removeFromCartBtn" onClick={() => props.onRemove(product.code)} title="Remove from cart">
+                        <i className="fa-solid fa-trash"></i> Remove
+                    </button>
                 </div>
             ))}
         </div>
