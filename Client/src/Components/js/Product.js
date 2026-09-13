@@ -54,8 +54,32 @@ export default function Product(props) {
     }
   }
 
-  function goToCart() {
-    navigate('/buynow');
+  function handleIncrement() {
+    if (!props.isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    if (availableQty && props.cartQuantity >= availableQty) {
+      alert(`Only ${availableQty} unit${availableQty === 1 ? '' : 's'} available in stock.`);
+      return;
+    }
+    if (props.onIncrementCart) {
+      props.onIncrementCart(props.code);
+    }
+  }
+
+  function handleDecrement() {
+    if (!props.isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    if (props.cartQuantity <= 1) {
+      if (props.onRemoveFromCart) {
+        props.onRemoveFromCart(props.code);
+      }
+    } else if (props.onDecrementCart) {
+      props.onDecrementCart(props.code);
+    }
   }
 
   async function notifyMe() {
@@ -143,10 +167,28 @@ export default function Product(props) {
               <i className={`fa-${notifyRequested ? 'solid fa-circle-check' : 'regular fa-bell'}`}></i>
               {notifyRequested ? ' We\'ll notify you' : ' Notify Me'}
             </button>
+          ) : props.isInCart ? (
+            <div className="addToCartButton addToCartButton_inCart cartQuantityStepper">
+              <button
+                type="button"
+                className={`qtyStepBtn qtyStepBtn_decrement${props.cartQuantity <= 1 ? ' qtyStepBtn_delete' : ''}`}
+                onClick={handleDecrement}
+                title={props.cartQuantity <= 1 ? 'Remove from cart' : 'Decrease quantity'}
+              >
+                <i className={`fa-solid ${props.cartQuantity <= 1 ? 'fa-trash' : 'fa-minus'}`}></i>
+              </button>
+              <span className="qtyStepValue">{props.cartQuantity}</span>
+              <button
+                type="button"
+                className="qtyStepBtn qtyStepBtn_increment"
+                onClick={handleIncrement}
+                title="Increase quantity"
+              >
+                <i className="fa-solid fa-plus"></i>
+              </button>
+            </div>
           ) : (
-            <button className={`addToCartButton${props.isInCart ? ' addToCartButton_inCart' : ''}`} onClick={props.isInCart ? goToCart : addToCart}>
-              {props.isInCart ? (<><i className="fa-solid fa-cart-shopping"></i> In Cart</>) : 'Add to Cart'}
-            </button>
+            <button className="addToCartButton" onClick={addToCart}>Add to Cart</button>
           )}
           {notifyError && <span className="notifyMeError">{notifyError}</span>}
         </span>
