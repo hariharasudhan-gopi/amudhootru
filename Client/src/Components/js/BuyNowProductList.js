@@ -10,8 +10,9 @@ function getEffectivePrice(product) {
 export default function BuyNowProductList(props) {
     const unitPrice = getEffectivePrice(props.products[0]);
     const hasOffer = unitPrice < Number(props.products[0].price);
-    const [productPrice, setProductPrice] = useState(unitPrice);
-    const [productQuantity, setProductQuantity] = useState(1);
+    const initialQuantity = Number(props.products[0].quantity) || 1;
+    const [productPrice, setProductPrice] = useState(unitPrice * initialQuantity);
+    const [productQuantity, setProductQuantity] = useState(initialQuantity);
     function increaseQuantity(){
         const maxQty = props.products[0].availablequantity;
         if (maxQty !== undefined && productQuantity >= maxQty) {
