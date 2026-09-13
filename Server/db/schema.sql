@@ -33,6 +33,20 @@ CREATE TABLE IF NOT EXISTS productdetails (
     privilegeofferprice INTEGER
 );
 
+-- Guard against production databases where productdetails was created before `code` was
+-- declared PRIMARY KEY (CREATE TABLE IF NOT EXISTS is a no-op on an already-existing table).
+-- Must run before any other table below adds a FOREIGN KEY REFERENCES productdetails(code),
+-- since Postgres refuses such a constraint without a unique/PK index on the target column.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'productdetails'::regclass AND contype IN ('p', 'u')
+    ) THEN
+        ALTER TABLE productdetails ADD CONSTRAINT productdetails_code_key UNIQUE (code);
+    END IF;
+END$$;
+
 -- Order metadata: one row per placed order/invoice.
 -- deliverystatus: 0 = Order Placed, 1 = Order Shipped, 2 = Out for Delivery, 3 = Delivered,
 --                 -1 = reserved for stock-notify requests (see orderdetails.ordertype below), not a real order.
