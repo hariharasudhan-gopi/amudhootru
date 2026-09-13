@@ -12,6 +12,7 @@ export default function ProductsList(props) {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [cartCodes, setCartCodes] = useState(new Set());
+  const [cartQuantities, setCartQuantities] = useState(new Map());
 
   useEffect(() => {
     fetchProducts();
@@ -20,6 +21,7 @@ export default function ProductsList(props) {
   const fetchCartCodes = useCallback(async () => {
     if (!props.isLoggedIn) {
       setCartCodes(new Set());
+      setCartQuantities(new Map());
       return;
     }
 
@@ -32,6 +34,7 @@ export default function ProductsList(props) {
 
       if (response.status === 404) {
         setCartCodes(new Set());
+        setCartQuantities(new Map());
         return;
       }
 
@@ -40,7 +43,9 @@ export default function ProductsList(props) {
       }
 
       const data = await response.json();
-      setCartCodes(new Set((data.products || []).map((product) => product.code || product.productcode)));
+      const items = data.products || [];
+      setCartCodes(new Set(items.map((product) => product.code || product.productcode)));
+      setCartQuantities(new Map(items.map((product) => [product.code || product.productcode, Number(product.quantity) || 1])));
     } catch (error) {
       console.error('Error fetching cart items:', error);
     }
@@ -61,6 +66,82 @@ export default function ProductsList(props) {
       next.add(code);
       return next;
     });
+    setCartQuantities(prev => new Map(prev).set(code, 1));
+  }
+
+  async function incrementCartItem(code) {
+    const current = cartQuantities.get(code) || 1;
+    const next = current + 1;
+    setCartQuantities(prev => new Map(prev).set(code, next));
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/products/updatecartquantity`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ productCode: code, quantity: next })
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg);
+      }
+    } catch (error) {
+      console.error('Error increasing cart quantity:', error);
+      setCartQuantities(prev => new Map(prev).set(code, current));
+    }
+  }
+
+  async function decrementCartItem(code) {
+    const current = cartQuantities.get(code) || 1;
+    if (current <= 1) return;
+    const next = current - 1;
+    setCartQuantities(prev => new Map(prev).set(code, next));
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/products/updatecartquantity`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ productCode: code, quantity: next })
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg);
+      }
+    } catch (error) {
+      console.error('Error decreasing cart quantity:', error);
+      setCartQuantities(prev => new Map(prev).set(code, current));
+    }
+  }
+
+  async function removeCartItem(code) {
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/products/removefromcart`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ productCode: code })
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg);
+      }
+
+      setCartCodes(prev => {
+        const next = new Set(prev);
+        next.delete(code);
+        if (props.setUserDetails) {
+          props.setUserDetails(u => ({ ...u, isCartItemsAvailable: next.size > 0 }));
+        }
+        window.dispatchEvent(new CustomEvent('cart-count-changed', { detail: { count: next.size } }));
+        return next;
+      });
+      setCartQuantities(prev => {
+        const next = new Map(prev);
+        next.delete(code);
+        return next;
+      });
+    } catch (error) {
+      console.error('Error removing product from cart:', error);
+    }
   }
 
   useEffect(() => {
@@ -161,7 +242,7 @@ export default function ProductsList(props) {
         )}
         <span className="productsList">
           {filteredProducts.map(product => (
-            <Product key={product.id} {...product} isLoggedIn={props.isLoggedIn} userDetails={props.userDetails} setUserDetails={props.setUserDetails} setCartToast={props.setCartToast} isInCart={cartCodes.has(product.code)} onAddedToCart={handleAddedToCart} /> 
+            <Product key={product.id} {...product} isLoggedIn={props.isLoggedIn} userDetails={props.userDetails} setUserDetails={props.setUserDetails} setCartToast={props.setCartToast} isInCart={cartCodes.has(product.code)} onAddedToCart={handleAddedToCart} cartQuantity={cartQuantities.get(product.code) || 1} onIncrementCart={incrementCartItem} onDecrementCart={decrementCartItem} onRemoveFromCart={removeCartItem} /> 
           ))}
         </span>
       </section>
