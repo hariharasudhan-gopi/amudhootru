@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import ProductReviewsListPopup from './ProductReviewsListPopup';
 
 export default function Product(props) {
   const navigate = useNavigate();
   const [notifyRequested, setNotifyRequested] = useState(false);
   const [notifyError, setNotifyError] = useState('');
+  const [showReviews, setShowReviews] = useState(false);
 
   function addToCart() {
     if (!props.isLoggedIn) {
@@ -150,6 +152,10 @@ export default function Product(props) {
           )}
         </p>
 
+        <button type="button" className="viewReviewsLink" onClick={() => setShowReviews(true)}>
+          <i className="fa-regular fa-comment-dots"></i> {reviewCount > 0 ? `Read Reviews (${reviewCount})` : 'View Reviews'}
+        </button>
+
         <div className="product_divider" aria-hidden="true"></div>
 
         <div className="priceAndOfferRow">
@@ -201,6 +207,13 @@ export default function Product(props) {
         </span>
         {props.count !== undefined && <p className="product_countText">count : {props.count}</p>}
       </div>
+      {showReviews && (
+        <ProductReviewsListPopup
+          productcode={props.code}
+          productname={props.name}
+          onClose={() => setShowReviews(false)}
+        />
+      )}
     </span>
   );
 }
