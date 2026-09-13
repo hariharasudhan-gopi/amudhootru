@@ -14,7 +14,15 @@ router.get('/products', async function(req, res) {
     try{
 
         const result = await pool.query(
-            'SELECT * FROM productdetails',
+            `SELECT p.*,
+                    COALESCE(r.avgrating, 0) AS avgrating,
+                    COALESCE(r.reviewcount, 0) AS reviewcount
+             FROM productdetails p
+             LEFT JOIN (
+                 SELECT productcode, AVG(rating) AS avgrating, COUNT(*) AS reviewcount
+                 FROM productreviews
+                 GROUP BY productcode
+             ) r ON r.productcode = p.code`,
             []
         );
         if (result.rows.length === 0) {
