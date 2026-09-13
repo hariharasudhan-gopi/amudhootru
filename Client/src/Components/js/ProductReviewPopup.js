@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import StarRatingInput from './StarRatingInput';
 import '../css/ProductReviewPopup.css';
 
@@ -12,6 +13,12 @@ export default function ProductReviewPopup(props) {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, []);
 
   function setRating(code, rating) {
     setRatings((prev) => ({ ...prev, [code]: { ...prev[code], rating } }));
@@ -42,7 +49,7 @@ export default function ProductReviewPopup(props) {
     }
   }
 
-  return (
+  return createPortal(
     <div className="reviewPopupOverlay">
       <div className="reviewPopupCard">
         <button className="reviewPopupClose" onClick={props.onClose} title="Close">
@@ -82,6 +89,7 @@ export default function ProductReviewPopup(props) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
