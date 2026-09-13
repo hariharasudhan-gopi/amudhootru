@@ -73,13 +73,34 @@ CREATE TABLE IF NOT EXISTS productreviews (
     rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
     reviewtext TEXT,
     createdat TIMESTAMP NOT NULL DEFAULT NOW(),
-    updatedat TIMESTAMP NOT NULL DEFAULT NOW(),
-    UNIQUE (userid, productcode, invoiceid)
+    updatedat TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_productreviews_productcode ON productreviews (productcode);
+-- Separate statement (not an inline UNIQUE column constraint) so it also gets
+-- applied to tables created before this constraint existed, since
+-- CREATE TABLE IF NOT EXISTS skips re-creating an already-existing table.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_productreviews_user_product_invoice
+    ON productreviews (userid, productcode, invoiceid);
 
 -- Backward-compatible column additions for databases created before a column existed.
-ALTER TABLE productdetails ADD COLUMN IF NOT EXISTS offerprice NUMERIC;
-ALTER TABLE productdetails ADD COLUMN IF NOT EXISTS lowstockthreshold INTEGER NOT NULL DEFAULT 5;
+-- Postgres 9.5 (local dev) doesn't support `ADD COLUMN IF NOT EXISTS` (added in 9.6),
+-- and since this whole file runs as one implicit transaction, that syntax error would
+-- roll back every statement above it — use an existence check instead.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'productdetails' AND column_name = 'offerprice'
+    ) THEN
+        ALTER TABLE productdetails ADD COLUMN offerprice NUMERIC;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'productdetails' AND column_name = 'lowstockthreshold'
+    ) THEN
+        ALTER TABLE productdetails ADD COLUMN lowstockthreshold INTEGER NOT NULL DEFAULT 5;
+    END IF;
+END$$;
 
