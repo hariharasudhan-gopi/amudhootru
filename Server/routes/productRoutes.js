@@ -53,8 +53,8 @@ router.post('/products/addtocart', requireAuth, async function(req, res) {
 
         if (result.rows.length === 0) {
             await pool.query(
-                'INSERT INTO orderdetails (productcode, userid, ordertype) VALUES ($1, $2, $3)',
-                [productCode, userId, 0]
+                'INSERT INTO orderdetails (productcode, userid, ordertype, quantity) VALUES ($1, $2, $3, $4)',
+                [productCode, userId, 0, 1]
             );
         }
 
@@ -266,6 +266,40 @@ router.post('/products/notifyme', requireAuth, async function(req, res) {
         );
 
         res.status(201).json({ message: "We'll email you as soon as this product is back in stock." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+router.post('/products/updatecartquantity', requireAuth, async function(req, res) {
+    const { productCode, quantity } = req.body;
+    const userId = req.user.userId;
+
+    if (!productCode || quantity === undefined) return res.status(400).send('productCode and quantity are required.');
+
+    const qty = Number(quantity);
+    if (!Number.isInteger(qty) || qty < 1) return res.status(400).send('quantity must be a positive integer.');
+
+    try {
+        const productResult = await pool.query(
+            'SELECT availablequantity FROM productdetails WHERE code = $1',
+            [productCode]
+        );
+        if (productResult.rows.length === 0) return res.status(404).send('Product not found.');
+
+        const availableQty = Number(productResult.rows[0].availablequantity);
+        if (!isNaN(availableQty) && qty > availableQty) {
+            return res.status(400).json({ message: `Only ${availableQty} unit(s) available in stock.` });
+        }
+
+        const result = await pool.query(
+            'UPDATE orderdetails SET quantity = $1 WHERE productcode = $2 AND userid = $3 AND ordertype = 0 RETURNING id',
+            [qty, productCode, userId]
+        );
+        if (result.rows.length === 0) return res.status(404).send('Product not found in cart.');
+
+        res.status(200).json({ message: 'Cart quantity updated.', quantity: qty });
     } catch (err) {
         console.error(err);
         res.status(500).send('Internal Server Error');
