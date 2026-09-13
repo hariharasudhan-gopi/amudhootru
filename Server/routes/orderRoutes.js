@@ -50,6 +50,22 @@ function getPaymentStatus(order) {
     return 'Pending';
 }
 
+// Computes the unit price actually payable for a product, applying the privilege
+// offer price (if the user qualifies) whenever it beats or matches the public offer.
+function getEffectivePrice(productDetails, isPrivilegeUser) {
+    const basePrice = Number(productDetails.price);
+    const publicOfferPrice = productDetails.offerprice && Number(productDetails.offerprice) > 0 && Number(productDetails.offerprice) < basePrice
+        ? Number(productDetails.offerprice)
+        : null;
+    const privilegeOfferPrice = isPrivilegeUser && productDetails.privilegeofferprice && Number(productDetails.privilegeofferprice) > 0 && Number(productDetails.privilegeofferprice) < basePrice
+        ? Number(productDetails.privilegeofferprice)
+        : null;
+    if (privilegeOfferPrice !== null && (publicOfferPrice === null || privilegeOfferPrice <= publicOfferPrice)) {
+        return privilegeOfferPrice;
+    }
+    return publicOfferPrice !== null ? publicOfferPrice : basePrice;
+}
+
 // Step 1: Create a Razorpay order and return order_id to the client
 router.post('/orders/create-payment', requireAuth, async function(req, res) {
     const { products } = req.body;
@@ -69,15 +85,7 @@ router.post('/orders/create-payment', requireAuth, async function(req, res) {
             }
 
             const productDetails = productResult.rows[0];
-            const publicOfferPrice = productDetails.offerprice && Number(productDetails.offerprice) > 0
-                ? Number(productDetails.offerprice)
-                : null;
-            const privilegeOfferPrice = isPrivilegeUser && productDetails.privilegeofferprice && Number(productDetails.privilegeofferprice) > 0
-                ? Number(productDetails.privilegeofferprice)
-                : null;
-            const effectivePrice = privilegeOfferPrice !== null && (publicOfferPrice === null || privilegeOfferPrice <= publicOfferPrice)
-                ? privilegeOfferPrice
-                : (publicOfferPrice !== null ? publicOfferPrice : Number(productDetails.price));
+            const effectivePrice = getEffectivePrice(productDetails, isPrivilegeUser);
             productsPrice += effectivePrice * (product.quantity || 1);
         }
 
@@ -155,35 +163,45 @@ router.post('/orders/place', requireAuth, async function(req, res) {
             [invoiceNumber, orderId]
         );
 
-        for (const product of products) {
-            await pool.query(
-                'INSERT INTO orderdetails (productcode, userid, quantity, ordertype, invoiceid) VALUES ($1, $2, $3, $4, $5)',
-                [product.productId, userId, product.quantity, 1, invoiceNumber]
-            );
+        const isPrivilegeUser = Boolean(req.user.isPrivilege);
+        const pricedProducts = [];
 
+        for (const product of products) {
             const productBefore = await pool.query(
-                'SELECT name, availablequantity, lowstockthreshold FROM productdetails WHERE code = $1',
+                'SELECT name, price, offerprice, privilegeofferprice, availablequantity, lowstockthreshold FROM productdetails WHERE code = $1',
                 [product.productId]
             );
-            const previousQuantity = Number(productBefore.rows[0]?.availablequantity ?? 0);
-            const decrementQty = product.quantity || 1;
-            const newQuantity = Math.max(previousQuantity - decrementQty, 0);
+            if (productBefore.rows.length === 0) {
+                return res.status(404).json({ message: `Product with ID ${product.productId} not found` });
+            }
+            const productDetails = productBefore.rows[0];
+            const quantity = product.quantity || 1;
+            // Compute the price server-side (never trust a client-supplied price) so the
+            // stored/invoiced amount always reflects the offer/privilege price actually applicable.
+            const unitPrice = getEffectivePrice(productDetails, isPrivilegeUser);
+            pricedProducts.push({ name: productDetails.name, quantity, price: unitPrice });
+
+            await pool.query(
+                'INSERT INTO orderdetails (productcode, userid, quantity, ordertype, invoiceid, price) VALUES ($1, $2, $3, $4, $5, $6)',
+                [product.productId, userId, quantity, 1, invoiceNumber, unitPrice]
+            );
+
+            const previousQuantity = Number(productDetails.availablequantity ?? 0);
+            const newQuantity = Math.max(previousQuantity - quantity, 0);
 
             // decrement stock; floor at 0 to prevent negative values
             await pool.query(
                 'UPDATE productdetails SET availablequantity = GREATEST(availablequantity - $1, 0) WHERE code = $2',
-                [decrementQty, product.productId]
+                [quantity, product.productId]
             );
 
-            if (productBefore.rows[0]) {
-                await checkLowStockAndAlertAdmin({
-                    code: product.productId,
-                    name: productBefore.rows[0].name,
-                    previousQuantity,
-                    newQuantity,
-                    threshold: productBefore.rows[0].lowstockthreshold
-                });
-            }
+            await checkLowStockAndAlertAdmin({
+                code: product.productId,
+                name: productDetails.name,
+                previousQuantity,
+                newQuantity,
+                threshold: productDetails.lowstockthreshold
+            });
         }
 
         await pool.query(
@@ -195,18 +213,18 @@ router.post('/orders/place', requireAuth, async function(req, res) {
         await sendInvoiceEmail({
             customerName: usermail,
             customerEmail: usermail,
-            products: products.map(product => ({
+            products: pricedProducts.map(product => ({
                 name: product.name,
-                quantity: product.quantity || 1,
-                price: product.price * (product.quantity || 1)
+                quantity: product.quantity,
+                price: product.price * product.quantity
             })),
             invoiceNumber,
             orderDate: new Date(),
             paymentStatus: selectedPaymentMethod === 'cod' ? 'Cash on Delivery' : 'Paid',
-            subtotal: products.reduce((sum, product) => sum + product.price * (product.quantity || 1), 0),
+            subtotal: pricedProducts.reduce((sum, product) => sum + product.price * product.quantity, 0),
             tax: 0,
             shipping: 0,
-            grandTotal: products.reduce((sum, product) => sum + product.price * (product.quantity || 1), 0),
+            grandTotal: pricedProducts.reduce((sum, product) => sum + product.price * product.quantity, 0),
             supportEmail: process.env.SUPPORT_EMAIL || 'support@amudhootru.com'
         });
 
@@ -278,7 +296,9 @@ router.get('/orders/placed', requireAuth, async function(req, res) {
                 return {
                     ...product,
                     productname: productResult.rows[0].name,
-                    price: productResult.rows[0].price,
+                    // Prefer the price actually paid at order time; fall back to the current
+                    // product price only for legacy orders placed before this was recorded.
+                    price: (product.price !== null && product.price !== undefined) ? Number(product.price) : Number(productResult.rows[0].price),
                     unit: productResult.rows[0].unit || null,
                     review: reviewResult.rows[0] || null
                 };
@@ -305,7 +325,7 @@ router.get('/orders/all', requireAdmin, async function(req, res) {
     const { status, dateFrom, dateTo } = req.query;
 
     try {
-        let query = `SELECT om.*, ui.name AS username, ui.email AS useremail
+        let query = `SELECT om.*, ui.name AS username, ui.email AS useremail, (ui.profiletype = 2) AS isprivilegecustomer
                      FROM ordermeta om
                      LEFT JOIN userinfo ui ON ui.id = om.userid
                      WHERE om.deliverystatus != -1`;
@@ -352,7 +372,9 @@ router.get('/orders/all', requireAdmin, async function(req, res) {
                 return {
                     ...item,
                     productname: prodResult.rows[0]?.name ?? item.productcode,
-                    price: prodResult.rows[0]?.price ?? 0,
+                    // Prefer the price actually paid at order time; fall back to the current
+                    // product price only for legacy orders placed before this was recorded.
+                    price: (item.price !== null && item.price !== undefined) ? Number(item.price) : Number(prodResult.rows[0]?.price ?? 0),
                     unit: prodResult.rows[0]?.unit || null
                 };
             }));
