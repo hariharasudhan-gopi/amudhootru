@@ -56,6 +56,7 @@ router.post('/orders/create-payment', requireAuth, async function(req, res) {
 
     try {
         let productsPrice = 0;
+        const isPrivilegeUser = Boolean(req.user.isPrivilege);
 
         for (const product of products) {
             const productResult = await pool.query(
@@ -68,9 +69,15 @@ router.post('/orders/create-payment', requireAuth, async function(req, res) {
             }
 
             const productDetails = productResult.rows[0];
-            const effectivePrice = productDetails.offerprice && Number(productDetails.offerprice) > 0
+            const publicOfferPrice = productDetails.offerprice && Number(productDetails.offerprice) > 0
                 ? Number(productDetails.offerprice)
-                : Number(productDetails.price);
+                : null;
+            const privilegeOfferPrice = isPrivilegeUser && productDetails.privilegeofferprice && Number(productDetails.privilegeofferprice) > 0
+                ? Number(productDetails.privilegeofferprice)
+                : null;
+            const effectivePrice = privilegeOfferPrice !== null && (publicOfferPrice === null || privilegeOfferPrice <= publicOfferPrice)
+                ? privilegeOfferPrice
+                : (publicOfferPrice !== null ? publicOfferPrice : Number(productDetails.price));
             productsPrice += effectivePrice * (product.quantity || 1);
         }
 
