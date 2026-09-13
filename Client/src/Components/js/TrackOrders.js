@@ -228,6 +228,7 @@ export function TrackOrders(props) {
                             <tr>
                                 <th>Product Name</th>
                                 <th>Quantity</th>
+                                <th>Bill Amount</th>
                                 <th>Your Review</th>
                             </tr>
                         </thead>
@@ -236,6 +237,7 @@ export function TrackOrders(props) {
                                 <tr key={p.productcode}>
                                     <td>{p.productname}</td>
                                     <td>{p.quantity}{p.unit ? ' ' + p.unit : ''}</td>
+                                    <td>₹{(Number(p.price) || 0) * (Number(p.quantity) || 1)}</td>
                                     <td>
                                         <ReviewCell
                                             invoiceid={order.invoiceid}
