@@ -115,8 +115,9 @@ export default function Product(props) {
   const isLimitedStock = !unavailable && availableQty <= lowStockThreshold;
   const unitLabel = props.unit || 'kg';
   const organicTag = props.description?.toLowerCase().includes('organic') ? 'Organic-certified' : 'Farm fresh produce';
-  const productRating = 4.6;
-  const reviewsCount = 1204;
+  const reviewCount = Number(props.reviewcount || 0);
+  const productRating = reviewCount > 0 ? Number(props.avgrating || 0) : 0;
+  const filledStars = Math.round(productRating);
   const basePrice = Number(props.price || 0);
   const hasOffer = props.offerprice !== undefined && props.offerprice !== null && props.offerprice !== ''
     && Number(props.offerprice) > 0 && Number(props.offerprice) < basePrice;
@@ -138,9 +139,15 @@ export default function Product(props) {
         <h2 className="product_title">{props.name}{props.userDetails?.isAdminUser && <span className="productCodeBadge"> ({props.code})</span>}</h2>
         <p className="product_description">{props.description}</p>
 
-        <p className="product_ratingRow" aria-label={`Rated ${productRating} out of 5`}>
-          <span className="stars">★★★★☆</span>
-          <span className="ratingText">{productRating} • {reviewsCount.toLocaleString()} ratings</span>
+        <p className="product_ratingRow" aria-label={reviewCount > 0 ? `Rated ${productRating.toFixed(1)} out of 5` : 'No ratings yet'}>
+          {reviewCount > 0 ? (
+            <>
+              <span className="stars">{'★'.repeat(filledStars)}{'☆'.repeat(5 - filledStars)}</span>
+              <span className="ratingText">{productRating.toFixed(1)} • {reviewCount.toLocaleString()} rating{reviewCount === 1 ? '' : 's'}</span>
+            </>
+          ) : (
+            <span className="ratingText">No ratings yet</span>
+          )}
         </p>
 
         <div className="product_divider" aria-hidden="true"></div>
