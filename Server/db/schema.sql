@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS userinfo (
     address TEXT,
     phone VARCHAR(20),
     deliveryaddress TEXT,
+    -- profiletype: 0 = normal customer, 1 = admin, 2 = privilege customer.
     profiletype INTEGER NOT NULL DEFAULT 0,
     profileimage TEXT
 );
@@ -28,7 +29,8 @@ CREATE TABLE IF NOT EXISTS productdetails (
     img_src TEXT,
     unit VARCHAR(20),
     offerprice NUMERIC,
-    lowstockthreshold INTEGER NOT NULL DEFAULT 5
+    lowstockthreshold INTEGER NOT NULL DEFAULT 5,
+    privilegeofferprice INTEGER
 );
 
 -- Order metadata: one row per placed order/invoice.
@@ -101,6 +103,23 @@ BEGIN
         WHERE table_name = 'productdetails' AND column_name = 'lowstockthreshold'
     ) THEN
         ALTER TABLE productdetails ADD COLUMN lowstockthreshold INTEGER NOT NULL DEFAULT 5;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'productdetails' AND column_name = 'privilegeofferprice'
+    ) THEN
+        ALTER TABLE productdetails ADD COLUMN privilegeofferprice INTEGER;
+    END IF;
+
+    -- Migrate the older isprivilege boolean column (if present) into profiletype = 2,
+    -- then drop it now that profiletype is the single source of truth for user role/tier.
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'userinfo' AND column_name = 'isprivilege'
+    ) THEN
+        UPDATE userinfo SET profiletype = 2 WHERE isprivilege = TRUE AND profiletype = 0;
+        ALTER TABLE userinfo DROP COLUMN isprivilege;
     END IF;
 END$$;
 
