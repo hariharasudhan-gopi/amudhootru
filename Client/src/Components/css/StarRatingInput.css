@@ -1,0 +1,16 @@
+.starRatingInput {
+    display: inline-flex;
+    gap: 4px;
+}
+.starRatingInput_star {
+    color: #d8d2c2;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: color 0.12s;
+}
+.starRatingInput_star_filled {
+    color: #b8861a;
+}
+.starRatingInput_readOnly .starRatingInput_star {
+    cursor: default;
+}
