@@ -263,11 +263,17 @@ router.get('/orders/placed', requireAuth, async function(req, res) {
                     [product.productcode]
                 );
 
+                const reviewResult = await pool.query(
+                    'SELECT rating, reviewtext FROM productreviews WHERE userid = $1 AND productcode = $2 AND invoiceid = $3',
+                    [userId, product.productcode, order.invoiceid]
+                );
+
                 return {
                     ...product,
                     productname: productResult.rows[0].name,
                     price: productResult.rows[0].price,
-                    unit: productResult.rows[0].unit || null
+                    unit: productResult.rows[0].unit || null,
+                    review: reviewResult.rows[0] || null
                 };
             });
 
