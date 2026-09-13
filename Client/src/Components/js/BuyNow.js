@@ -11,10 +11,18 @@ function publishCartCount(count) {
     }));
 }
 
-function getEffectivePrice(product) {
-    return product.offerprice && Number(product.offerprice) > 0 && Number(product.offerprice) < Number(product.price)
+function getEffectivePrice(product, isPrivilegeUser) {
+    const basePrice = Number(product.price);
+    const publicOfferPrice = product.offerprice && Number(product.offerprice) > 0 && Number(product.offerprice) < basePrice
         ? Number(product.offerprice)
-        : Number(product.price);
+        : null;
+    const privilegeOfferPrice = isPrivilegeUser && product.privilegeofferprice && Number(product.privilegeofferprice) > 0 && Number(product.privilegeofferprice) < basePrice
+        ? Number(product.privilegeofferprice)
+        : null;
+    if (privilegeOfferPrice !== null && (publicOfferPrice === null || privilegeOfferPrice <= publicOfferPrice)) {
+        return privilegeOfferPrice;
+    }
+    return publicOfferPrice !== null ? publicOfferPrice : basePrice;
 }
 
 export default function BuyNow(props) {
@@ -26,14 +34,15 @@ export default function BuyNow(props) {
     const [showDeliveryAddress, setShowDeliveryAddress] = useState(false);
     const [deliveryAddress, setDeliveryAddress] = useState(props.userDetails && props.userDetails.deliveryAddress && props.userDetails.deliveryAddress.length ? props.userDetails.deliveryAddress[0] : null);
     const [paymentMethod, setPaymentMethod] = useState('online');
+    const isPrivilegeUser = Boolean(props.userDetails?.isPrivilege);
 
     const selectedProducts = useMemo(
         () => products.filter(product => selectedCodes.has(product.code)),
         [products, selectedCodes]
     );
     const selectedTotal = useMemo(
-        () => selectedProducts.reduce((sum, product) => sum + getEffectivePrice(product) * (product.quantity || 1), 0),
-        [selectedProducts]
+        () => selectedProducts.reduce((sum, product) => sum + getEffectivePrice(product, isPrivilegeUser) * (product.quantity || 1), 0),
+        [selectedProducts, isPrivilegeUser]
     );
     const selectedOriginalTotal = useMemo(
         () => selectedProducts.reduce((sum, product) => sum + Number(product.price) * (product.quantity || 1), 0),
@@ -187,7 +196,7 @@ export default function BuyNow(props) {
                         products: selectedProducts.map(product => ({
                             productId: product.code,
                             quantity: product.quantity || 1,
-                            price: getEffectivePrice(product) * (product.quantity || 1),
+                            price: getEffectivePrice(product, isPrivilegeUser) * (product.quantity || 1),
                             name: product.name
                         })),
                         deliveryAddress
@@ -253,7 +262,7 @@ export default function BuyNow(props) {
                                 products: selectedProducts.map(product => ({
                                     productId: product.code,
                                     quantity: product.quantity || 1,
-                                    price: getEffectivePrice(product) * (product.quantity || 1),
+                                    price: getEffectivePrice(product, isPrivilegeUser) * (product.quantity || 1),
                                     name: product.name
                                 })),
                                 deliveryAddress,
@@ -303,6 +312,7 @@ export default function BuyNow(props) {
                         <BuyNowProductList
                             key={product.id}
                             products={[product]}
+                            userDetails={props.userDetails}
                             setTotalPrice={setTotalPrice}
                             updateProductQuantity={updateProductQuantity}
                             onRemove={removeFromCart}
