@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS userinfo (
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS productdetails (
-    code VARCHAR(50) PRIMARY KEY,
+    code SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     price NUMERIC NOT NULL,
     description TEXT,
