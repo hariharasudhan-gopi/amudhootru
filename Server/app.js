@@ -84,6 +84,7 @@ const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
+const accountRoutes = require("./routes/accountRoutes");
 
 // use routes
 app.use(userRoutes);
@@ -91,6 +92,7 @@ app.use(productRoutes);
 app.use(orderRoutes);
 app.use(chatRoutes);
 app.use(reviewRoutes);
+app.use(accountRoutes);
 
 // 404 handler
 app.use((req, res) => {
