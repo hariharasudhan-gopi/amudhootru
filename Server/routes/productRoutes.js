@@ -117,7 +117,7 @@ router.get('/products/getcart', requireAuth, async function(req, res) {
 });
 
 router.post('/products/add', requireAdmin, async function(req, res) {
-    const { code, name, price, description, quantity, img_src, unit, offerprice, lowstockthreshold } = req.body;
+    const { code, name, price, description, quantity, img_src, unit, offerprice, lowstockthreshold, privilegeofferprice } = req.body;
 
     if (!code || !name || !price || !description || quantity === undefined) {
         return res.status(400).send('Missing required product fields.');
@@ -126,6 +126,11 @@ router.post('/products/add', requireAdmin, async function(req, res) {
     const offerPriceValue = (offerprice === undefined || offerprice === null || offerprice === '') ? null : Number(offerprice);
     if (offerPriceValue !== null && (isNaN(offerPriceValue) || offerPriceValue <= 0 || offerPriceValue >= Number(price))) {
         return res.status(400).send('Offer price must be a positive number less than the price.');
+    }
+
+    const privilegeOfferPriceValue = (privilegeofferprice === undefined || privilegeofferprice === null || privilegeofferprice === '') ? null : Number(privilegeofferprice);
+    if (privilegeOfferPriceValue !== null && (isNaN(privilegeOfferPriceValue) || privilegeOfferPriceValue <= 0 || privilegeOfferPriceValue >= Number(price))) {
+        return res.status(400).send('Privilege offer price must be a positive number less than the price.');
     }
 
     const thresholdValue = (lowstockthreshold === undefined || lowstockthreshold === null || lowstockthreshold === '')
@@ -145,8 +150,8 @@ router.post('/products/add', requireAdmin, async function(req, res) {
         }
 
         await pool.query(
-            'INSERT INTO productdetails (code, name, price, description, availablequantity, img_src, unit, offerprice, lowstockthreshold) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-            [code, name, price, description, quantity, img_src || null, unit || null, offerPriceValue, thresholdValue]
+            'INSERT INTO productdetails (code, name, price, description, availablequantity, img_src, unit, offerprice, lowstockthreshold, privilegeofferprice) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+            [code, name, price, description, quantity, img_src || null, unit || null, offerPriceValue, thresholdValue, privilegeOfferPriceValue]
         );
 
         res.status(201).json({ message: 'Product added successfully.' });
@@ -173,7 +178,7 @@ router.get('/products/:code', async function(req, res) {
 });
 
 router.post('/products/update', requireAdmin, async function(req, res) {
-    const { code, name, price, description, quantity, img_src, unit, offerprice, lowstockthreshold } = req.body;
+    const { code, name, price, description, quantity, img_src, unit, offerprice, lowstockthreshold, privilegeofferprice } = req.body;
 
     if (!code) return res.status(400).send('Product code is required.');
 
@@ -190,6 +195,11 @@ router.post('/products/update', requireAdmin, async function(req, res) {
         const offerPriceValue = (offerprice === undefined || offerprice === null || offerprice === '') ? null : Number(offerprice);
         if (offerPriceValue !== null && (isNaN(offerPriceValue) || offerPriceValue <= 0 || offerPriceValue >= Number(effectivePrice))) {
             return res.status(400).send('Offer price must be a positive number less than the price.');
+        }
+
+        const privilegeOfferPriceValue = (privilegeofferprice === undefined || privilegeofferprice === null || privilegeofferprice === '') ? null : Number(privilegeofferprice);
+        if (privilegeOfferPriceValue !== null && (isNaN(privilegeOfferPriceValue) || privilegeOfferPriceValue <= 0 || privilegeOfferPriceValue >= Number(effectivePrice))) {
+            return res.status(400).send('Privilege offer price must be a positive number less than the price.');
         }
 
         let thresholdValue = null;
@@ -209,10 +219,11 @@ router.post('/products/update', requireAdmin, async function(req, res) {
                  img_src = COALESCE($6, img_src),
                  unit = COALESCE($7, unit),
                  offerprice = $8,
-                 lowstockthreshold = COALESCE($9, lowstockthreshold)
+                 lowstockthreshold = COALESCE($9, lowstockthreshold),
+                 privilegeofferprice = $10
              WHERE code = $1`,
             [code, name || null, price || null, description || null,
-             quantity !== undefined ? quantity : null, img_src || null, unit || null, offerPriceValue, thresholdValue]
+             quantity !== undefined ? quantity : null, img_src || null, unit || null, offerPriceValue, thresholdValue, privilegeOfferPriceValue]
         );
 
         const previousQuantity = Number(existingProduct.availablequantity);
