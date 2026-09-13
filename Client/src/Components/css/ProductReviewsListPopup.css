@@ -1,0 +1,86 @@
+.reviewsListPopupOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 30, 15, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+    box-sizing: border-box;
+}
+.reviewsListPopupCard {
+    background: #fdfbf4;
+    border-radius: 20px;
+    box-shadow: 0 24px 48px rgba(30, 50, 20, 0.28);
+    width: min(520px, 100%);
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 28px;
+    position: relative;
+    box-sizing: border-box;
+}
+.reviewsListPopupClose {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    color: #5c584f;
+    cursor: pointer;
+}
+.reviewsListPopupTitle {
+    margin: 0 0 4px;
+    color: #263c1f;
+    font-size: 1.4rem;
+}
+.reviewsListPopupSubtitle {
+    margin: 0 0 20px;
+    color: #635d52;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+.reviewsListPopupStatus {
+    color: #635d52;
+    font-size: 0.92rem;
+    margin: 8px 0 0;
+}
+.reviewsListPopupError {
+    color: #c0392b;
+}
+.reviewsListPopupItems {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.reviewsListPopupItem {
+    border-bottom: 1px solid #e7dac1;
+    padding-bottom: 14px;
+}
+.reviewsListPopupItem:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.reviewsListPopupItemHeader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.reviewsListPopupReviewer {
+    font-weight: 700;
+    color: #263c1f;
+}
+.reviewsListPopupDate {
+    color: #8a8272;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+.reviewsListPopupText {
+    margin: 6px 0 0;
+    color: #4a453d;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
