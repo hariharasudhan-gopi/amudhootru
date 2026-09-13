@@ -14,7 +14,15 @@ router.get('/products', async function(req, res) {
     try{
 
         const result = await pool.query(
-            'SELECT * FROM productdetails',
+            `SELECT p.*,
+                    COALESCE(r.avgrating, 0) AS avgrating,
+                    COALESCE(r.reviewcount, 0) AS reviewcount
+             FROM productdetails p
+             LEFT JOIN (
+                 SELECT productcode, AVG(rating) AS avgrating, COUNT(*) AS reviewcount
+                 FROM productreviews
+                 GROUP BY productcode
+             ) r ON r.productcode = p.code`,
             []
         );
         if (result.rows.length === 0) {
@@ -53,8 +61,8 @@ router.post('/products/addtocart', requireAuth, async function(req, res) {
 
         if (result.rows.length === 0) {
             await pool.query(
-                'INSERT INTO orderdetails (productcode, userid, ordertype) VALUES ($1, $2, $3)',
-                [productCode, userId, 0]
+                'INSERT INTO orderdetails (productcode, userid, ordertype, quantity) VALUES ($1, $2, $3, $4)',
+                [productCode, userId, 0, 1]
             );
         }
 
@@ -109,7 +117,7 @@ router.get('/products/getcart', requireAuth, async function(req, res) {
 });
 
 router.post('/products/add', requireAdmin, async function(req, res) {
-    const { code, name, price, description, quantity, img_src, unit, offerprice, lowstockthreshold } = req.body;
+    const { code, name, price, description, quantity, img_src, unit, offerprice, lowstockthreshold, privilegeofferprice } = req.body;
 
     if (!code || !name || !price || !description || quantity === undefined) {
         return res.status(400).send('Missing required product fields.');
@@ -118,6 +126,11 @@ router.post('/products/add', requireAdmin, async function(req, res) {
     const offerPriceValue = (offerprice === undefined || offerprice === null || offerprice === '') ? null : Number(offerprice);
     if (offerPriceValue !== null && (isNaN(offerPriceValue) || offerPriceValue <= 0 || offerPriceValue >= Number(price))) {
         return res.status(400).send('Offer price must be a positive number less than the price.');
+    }
+
+    const privilegeOfferPriceValue = (privilegeofferprice === undefined || privilegeofferprice === null || privilegeofferprice === '') ? null : Number(privilegeofferprice);
+    if (privilegeOfferPriceValue !== null && (isNaN(privilegeOfferPriceValue) || privilegeOfferPriceValue <= 0 || privilegeOfferPriceValue >= Number(price))) {
+        return res.status(400).send('Privilege offer price must be a positive number less than the price.');
     }
 
     const thresholdValue = (lowstockthreshold === undefined || lowstockthreshold === null || lowstockthreshold === '')
@@ -137,8 +150,8 @@ router.post('/products/add', requireAdmin, async function(req, res) {
         }
 
         await pool.query(
-            'INSERT INTO productdetails (code, name, price, description, availablequantity, img_src, unit, offerprice, lowstockthreshold) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-            [code, name, price, description, quantity, img_src || null, unit || null, offerPriceValue, thresholdValue]
+            'INSERT INTO productdetails (code, name, price, description, availablequantity, img_src, unit, offerprice, lowstockthreshold, privilegeofferprice) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+            [code, name, price, description, quantity, img_src || null, unit || null, offerPriceValue, thresholdValue, privilegeOfferPriceValue]
         );
 
         res.status(201).json({ message: 'Product added successfully.' });
@@ -165,7 +178,7 @@ router.get('/products/:code', async function(req, res) {
 });
 
 router.post('/products/update', requireAdmin, async function(req, res) {
-    const { code, name, price, description, quantity, img_src, unit, offerprice, lowstockthreshold } = req.body;
+    const { code, name, price, description, quantity, img_src, unit, offerprice, lowstockthreshold, privilegeofferprice } = req.body;
 
     if (!code) return res.status(400).send('Product code is required.');
 
@@ -182,6 +195,11 @@ router.post('/products/update', requireAdmin, async function(req, res) {
         const offerPriceValue = (offerprice === undefined || offerprice === null || offerprice === '') ? null : Number(offerprice);
         if (offerPriceValue !== null && (isNaN(offerPriceValue) || offerPriceValue <= 0 || offerPriceValue >= Number(effectivePrice))) {
             return res.status(400).send('Offer price must be a positive number less than the price.');
+        }
+
+        const privilegeOfferPriceValue = (privilegeofferprice === undefined || privilegeofferprice === null || privilegeofferprice === '') ? null : Number(privilegeofferprice);
+        if (privilegeOfferPriceValue !== null && (isNaN(privilegeOfferPriceValue) || privilegeOfferPriceValue <= 0 || privilegeOfferPriceValue >= Number(effectivePrice))) {
+            return res.status(400).send('Privilege offer price must be a positive number less than the price.');
         }
 
         let thresholdValue = null;
@@ -201,10 +219,11 @@ router.post('/products/update', requireAdmin, async function(req, res) {
                  img_src = COALESCE($6, img_src),
                  unit = COALESCE($7, unit),
                  offerprice = $8,
-                 lowstockthreshold = COALESCE($9, lowstockthreshold)
+                 lowstockthreshold = COALESCE($9, lowstockthreshold),
+                 privilegeofferprice = $10
              WHERE code = $1`,
             [code, name || null, price || null, description || null,
-             quantity !== undefined ? quantity : null, img_src || null, unit || null, offerPriceValue, thresholdValue]
+             quantity !== undefined ? quantity : null, img_src || null, unit || null, offerPriceValue, thresholdValue, privilegeOfferPriceValue]
         );
 
         const previousQuantity = Number(existingProduct.availablequantity);
@@ -266,6 +285,40 @@ router.post('/products/notifyme', requireAuth, async function(req, res) {
         );
 
         res.status(201).json({ message: "We'll email you as soon as this product is back in stock." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+router.post('/products/updatecartquantity', requireAuth, async function(req, res) {
+    const { productCode, quantity } = req.body;
+    const userId = req.user.userId;
+
+    if (!productCode || quantity === undefined) return res.status(400).send('productCode and quantity are required.');
+
+    const qty = Number(quantity);
+    if (!Number.isInteger(qty) || qty < 1) return res.status(400).send('quantity must be a positive integer.');
+
+    try {
+        const productResult = await pool.query(
+            'SELECT availablequantity FROM productdetails WHERE code = $1',
+            [productCode]
+        );
+        if (productResult.rows.length === 0) return res.status(404).send('Product not found.');
+
+        const availableQty = Number(productResult.rows[0].availablequantity);
+        if (!isNaN(availableQty) && qty > availableQty) {
+            return res.status(400).json({ message: `Only ${availableQty} unit(s) available in stock.` });
+        }
+
+        const result = await pool.query(
+            'UPDATE orderdetails SET quantity = $1 WHERE productcode = $2 AND userid = $3 AND ordertype = 0 RETURNING id',
+            [qty, productCode, userId]
+        );
+        if (result.rows.length === 0) return res.status(404).send('Product not found in cart.');
+
+        res.status(200).json({ message: 'Cart quantity updated.', quantity: qty });
     } catch (err) {
         console.error(err);
         res.status(500).send('Internal Server Error');

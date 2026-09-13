@@ -122,6 +122,22 @@
 .deliveryAddressCell  { font-size: 0.82rem; color: #444; max-width: 180px; word-break: break-word; }
 .custName  { font-weight: 600; }
 .custEmail { font-size: 0.78rem; color: #666; }
+.customerTierBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: #eef1ec;
+    color: #5a6a55;
+}
+.customerTierBadge_privilege {
+    background: linear-gradient(135deg, #f5b700, #e29c00);
+    color: #3f3000;
+}
 
 .statusBadge {
     display: inline-block;
@@ -184,6 +200,7 @@
     color: #444;
 }
 .manageProductList li { margin-bottom: 2px; }
+.productBillAmount { color: #1a7a4a; font-weight: 700; }
 
 /* ── status update cell ───────────────────────── */
 .statusUpdateCell {

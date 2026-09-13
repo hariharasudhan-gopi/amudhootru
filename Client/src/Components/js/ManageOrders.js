@@ -159,6 +159,10 @@ export default function ManageOrders(props) {
                                         <span className="custName">{order.username}</span>
                                         <br />
                                         <span className="custEmail">{order.useremail}</span>
+                                        <br />
+                                        <span className={`customerTierBadge${order.isprivilegecustomer ? ' customerTierBadge_privilege' : ''}`}>
+                                            {order.isprivilegecustomer ? <><i className="fa-solid fa-star"></i> Privilege</> : 'Normal'}
+                                        </span>
                                     </td>
                                     <td className="orderDateCell">
                                         {new Date(order.dateoforder).toLocaleDateString()}
@@ -206,7 +210,10 @@ export default function ManageOrders(props) {
                                     <td>
                                         <ul className="manageProductList">
                                             {(order.products || []).map(p => (
-                                                <li key={p.productcode}>{p.productname} × {p.quantity}{p.unit ? ' ' + p.unit : ''}</li>
+                                                <li key={p.productcode}>
+                                                    {p.productname} × {p.quantity}{p.unit ? ' ' + p.unit : ''}
+                                                    <span className="productBillAmount"> — ₹{(Number(p.price) || 0) * (Number(p.quantity) || 1)}</span>
+                                                </li>
                                             ))}
                                         </ul>
                                     </td>

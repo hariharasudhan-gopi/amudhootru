@@ -204,6 +204,7 @@
 .product_pill {
     position: absolute;
     top: 18px;
+    z-index: 2;
     border-radius: 999px;
     font-weight: 700;
     font-size: 0.78rem;
@@ -264,7 +265,7 @@
 }
 .product_image{
     display: block;
-    margin: 36px auto 16px;
+    margin: 58px auto 16px;
     width: min(230px, 100%);
     height: 220px;
     object-fit: contain;
@@ -310,6 +311,23 @@
     font-size: 0.92rem;
     font-weight: 700;
 }
+.viewReviewsLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    background: none;
+    border: none;
+    padding: 0;
+    color: #4a933f;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.viewReviewsLink:hover {
+    text-decoration: underline;
+}
+
 .product_divider {
     margin: 10px 0 2px;
     height: 1px;
@@ -346,6 +364,18 @@
     padding: 8px 14px;
     font-weight: 800;
     font-size: 0.92rem;
+    white-space: nowrap;
+}
+.privilegePriceBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #f5b700, #e29c00);
+    color: #3f3000;
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-weight: 800;
+    font-size: 0.86rem;
     white-space: nowrap;
 }
 .product_metaInfo {
@@ -388,12 +418,45 @@
     background-color: #f8f3e8;
     color: #263c1f;
     border: 2px solid #263c1f;
+    cursor: default;
 }
 .addToCartButton_inCart:hover{
     background-color: #eee6d2;
 }
-.addToCartButton_inCart i{
-    margin-right: 8px;
+.cartQuantityStepper{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+.qtyStepBtn{
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background-color: #263c1f;
+    color: #f8f3e8;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0;
+}
+.qtyStepBtn:hover{
+    background-color: #1f3219;
+}
+.qtyStepBtn_delete{
+    background-color: #c0392b;
+}
+.qtyStepBtn_delete:hover{
+    background-color: #a5301f;
+}
+.qtyStepValue{
+    font-size: 1.15rem;
+    font-weight: 800;
 }
 
 @media (max-width: 768px) {
@@ -475,7 +538,7 @@
     }
     .product_image {
         height: 188px;
-        margin-top: 48px;
+        margin-top: 54px;
     }
     .product_detailsArea {
         padding: 18px 16px 16px;

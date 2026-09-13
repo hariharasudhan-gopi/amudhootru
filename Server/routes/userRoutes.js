@@ -28,6 +28,7 @@ function toUserDetails(user, cartItemsCount = 0) {
         address: parseJsonIfString(user.address),
         deliveryAddress: parseJsonIfString(user.deliveryaddress),
         isAdminUser: user.profiletype === 1,
+        isPrivilege: user.profiletype === 2,
         isCartItemsAvailable: cartItemsCount > 0,
         profileimage: user.profileimage || null,
     };

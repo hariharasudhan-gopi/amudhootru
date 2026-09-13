@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import ProductReviewsListPopup from './ProductReviewsListPopup';
 
 export default function Product(props) {
   const navigate = useNavigate();
   const [notifyRequested, setNotifyRequested] = useState(false);
   const [notifyError, setNotifyError] = useState('');
+  const [showReviews, setShowReviews] = useState(false);
 
   function addToCart() {
     if (!props.isLoggedIn) {
@@ -54,8 +56,32 @@ export default function Product(props) {
     }
   }
 
-  function goToCart() {
-    navigate('/buynow');
+  function handleIncrement() {
+    if (!props.isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    if (availableQty && props.cartQuantity >= availableQty) {
+      alert(`Only ${availableQty} unit${availableQty === 1 ? '' : 's'} available in stock.`);
+      return;
+    }
+    if (props.onIncrementCart) {
+      props.onIncrementCart(props.code);
+    }
+  }
+
+  function handleDecrement() {
+    if (!props.isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    if (props.cartQuantity <= 1) {
+      if (props.onRemoveFromCart) {
+        props.onRemoveFromCart(props.code);
+      }
+    } else if (props.onDecrementCart) {
+      props.onDecrementCart(props.code);
+    }
   }
 
   async function notifyMe() {
@@ -91,13 +117,22 @@ export default function Product(props) {
   const isLimitedStock = !unavailable && availableQty <= lowStockThreshold;
   const unitLabel = props.unit || 'kg';
   const organicTag = props.description?.toLowerCase().includes('organic') ? 'Organic-certified' : 'Farm fresh produce';
-  const productRating = 4.6;
-  const reviewsCount = 1204;
+  const reviewCount = Number(props.reviewcount || 0);
+  const productRating = reviewCount > 0 ? Number(props.avgrating || 0) : 0;
+  const filledStars = Math.round(productRating);
   const basePrice = Number(props.price || 0);
   const hasOffer = props.offerprice !== undefined && props.offerprice !== null && props.offerprice !== ''
     && Number(props.offerprice) > 0 && Number(props.offerprice) < basePrice;
-  const displayPrice = hasOffer ? Number(props.offerprice) : basePrice;
-  const discountPercent = hasOffer ? Math.max(1, Math.round(((basePrice - Number(props.offerprice)) / basePrice) * 100)) : 0;
+  const isPrivilegeUser = Boolean(props.userDetails?.isPrivilege);
+  const hasPrivilegeOffer = isPrivilegeUser && props.privilegeofferprice !== undefined && props.privilegeofferprice !== null && props.privilegeofferprice !== ''
+    && Number(props.privilegeofferprice) > 0 && Number(props.privilegeofferprice) < basePrice;
+  const publicOfferPrice = hasOffer ? Number(props.offerprice) : null;
+  const privilegeOfferPrice = hasPrivilegeOffer ? Number(props.privilegeofferprice) : null;
+  // Privilege pricing wins whenever it's at least as good as the public offer.
+  const isPrivilegePriceApplied = privilegeOfferPrice !== null && (publicOfferPrice === null || privilegeOfferPrice <= publicOfferPrice);
+  const displayPrice = isPrivilegePriceApplied ? privilegeOfferPrice : (publicOfferPrice !== null ? publicOfferPrice : basePrice);
+  const hasAnyOffer = isPrivilegePriceApplied || publicOfferPrice !== null;
+  const discountPercent = hasAnyOffer ? Math.max(1, Math.round(((basePrice - displayPrice) / basePrice) * 100)) : 0;
 
   return (
     <span className={`product_container product_${props.id}${unavailable ? ' product_unavailable' : ''}`}>
@@ -114,10 +149,20 @@ export default function Product(props) {
         <h2 className="product_title">{props.name}{props.userDetails?.isAdminUser && <span className="productCodeBadge"> ({props.code})</span>}</h2>
         <p className="product_description">{props.description}</p>
 
-        <p className="product_ratingRow" aria-label={`Rated ${productRating} out of 5`}>
-          <span className="stars">★★★★☆</span>
-          <span className="ratingText">{productRating} • {reviewsCount.toLocaleString()} ratings</span>
+        <p className="product_ratingRow" aria-label={reviewCount > 0 ? `Rated ${productRating.toFixed(1)} out of 5` : 'No ratings yet'}>
+          {reviewCount > 0 ? (
+            <>
+              <span className="stars">{'★'.repeat(filledStars)}{'☆'.repeat(5 - filledStars)}</span>
+              <span className="ratingText">{productRating.toFixed(1)} • {reviewCount.toLocaleString()} rating{reviewCount === 1 ? '' : 's'}</span>
+            </>
+          ) : (
+            <span className="ratingText">No ratings yet</span>
+          )}
         </p>
+
+        <button type="button" className="viewReviewsLink" onClick={() => setShowReviews(true)}>
+          <i className="fa-regular fa-comment-dots"></i> {reviewCount > 0 ? `Read Reviews (${reviewCount})` : 'View Reviews'}
+        </button>
 
         <div className="product_divider" aria-hidden="true"></div>
 
@@ -125,9 +170,10 @@ export default function Product(props) {
           <p className="product_price">
             <span className="priceNow">₹{displayPrice}</span>
             <span className="priceUnit"> / {unitLabel}</span>
-            {hasOffer && <span className="priceOld">₹{basePrice}</span>}
+            {hasAnyOffer && <span className="priceOld">₹{basePrice}</span>}
           </p>
-          {hasOffer && <span className="saveBadge">Save {discountPercent}%</span>}
+          {isPrivilegePriceApplied && <span className="privilegePriceBadge"><i className="fa-solid fa-star"></i> Privilege Price · Save {discountPercent}%</span>}
+          {hasAnyOffer && !isPrivilegePriceApplied && <span className="saveBadge">Save {discountPercent}%</span>}
         </div>
 
         <div className="product_metaInfo">
@@ -143,15 +189,40 @@ export default function Product(props) {
               <i className={`fa-${notifyRequested ? 'solid fa-circle-check' : 'regular fa-bell'}`}></i>
               {notifyRequested ? ' We\'ll notify you' : ' Notify Me'}
             </button>
+          ) : props.isInCart ? (
+            <div className="addToCartButton addToCartButton_inCart cartQuantityStepper">
+              <button
+                type="button"
+                className={`qtyStepBtn qtyStepBtn_decrement${props.cartQuantity <= 1 ? ' qtyStepBtn_delete' : ''}`}
+                onClick={handleDecrement}
+                title={props.cartQuantity <= 1 ? 'Remove from cart' : 'Decrease quantity'}
+              >
+                <i className={`fa-solid ${props.cartQuantity <= 1 ? 'fa-trash' : 'fa-minus'}`}></i>
+              </button>
+              <span className="qtyStepValue">{props.cartQuantity}</span>
+              <button
+                type="button"
+                className="qtyStepBtn qtyStepBtn_increment"
+                onClick={handleIncrement}
+                title="Increase quantity"
+              >
+                <i className="fa-solid fa-plus"></i>
+              </button>
+            </div>
           ) : (
-            <button className={`addToCartButton${props.isInCart ? ' addToCartButton_inCart' : ''}`} onClick={props.isInCart ? goToCart : addToCart}>
-              {props.isInCart ? (<><i className="fa-solid fa-cart-shopping"></i> In Cart</>) : 'Add to Cart'}
-            </button>
+            <button className="addToCartButton" onClick={addToCart}>Add to Cart</button>
           )}
           {notifyError && <span className="notifyMeError">{notifyError}</span>}
         </span>
         {props.count !== undefined && <p className="product_countText">count : {props.count}</p>}
       </div>
+      {showReviews && (
+        <ProductReviewsListPopup
+          productcode={props.code}
+          productname={props.name}
+          onClose={() => setShowReviews(false)}
+        />
+      )}
     </span>
   );
 }

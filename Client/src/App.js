@@ -9,6 +9,7 @@ import BuyNow from './Components/js/BuyNow.js';
 import Header from './Components/js/Header.js';
 import AddProducts from './Components/js/AddProducts.js';
 import ManageOrders from './Components/js/ManageOrders.js';
+import Accounts from './Components/js/Accounts.js';
 import About from './Components/js/About.js';
 import SupportChatbot from './Components/js/SupportChatbot.js';
 
@@ -96,6 +97,7 @@ function App() {
             <Route path="/track-orders" element={<ProtectedRoute element={<TrackOrders userDetails={userDetails} />} />} />
             <Route path="/add-products" element={<AdminRoute element={<AddProducts userDetails={userDetails} setUserDetails={setUserDetails} />} />} />
             <Route path="/manage-orders" element={<AdminRoute element={<ManageOrders userDetails={userDetails} />} />} />
+            <Route path="/accounts" element={<AdminRoute element={<Accounts />} />} />
             <Route path="/about" element={<About />} />
           </Routes>
         </div>

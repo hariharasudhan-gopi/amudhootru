@@ -183,6 +183,9 @@ export default function Header({
                 {isLoggedIn && userDetails?.isAdminUser && (
                     <button className="header_loginButton" onClick={() => navigate('/manage-orders')}>Manage Orders</button>
                 )}
+                {isLoggedIn && userDetails?.isAdminUser && (
+                    <button className="header_loginButton" onClick={() => navigate('/accounts')}>Accounts</button>
+                )}
                 {!isLoggedIn && <button className="header_loginButton" onClick={userLogin}>Login</button>}
 
                 <button className="header_cartButton" onClick={goToCart}>

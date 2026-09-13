@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS userinfo (
     address TEXT,
     phone VARCHAR(20),
     deliveryaddress TEXT,
+    -- profiletype: 0 = normal customer, 1 = admin, 2 = privilege customer.
     profiletype INTEGER NOT NULL DEFAULT 0,
     profileimage TEXT
 );
@@ -28,7 +29,8 @@ CREATE TABLE IF NOT EXISTS productdetails (
     img_src TEXT,
     unit VARCHAR(20),
     offerprice NUMERIC,
-    lowstockthreshold INTEGER NOT NULL DEFAULT 5
+    lowstockthreshold INTEGER NOT NULL DEFAULT 5,
+    privilegeofferprice INTEGER
 );
 
 -- Order metadata: one row per placed order/invoice.
@@ -46,13 +48,15 @@ CREATE TABLE IF NOT EXISTS ordermeta (
 );
 
 -- ordertype: 0 = cart item, 1 = placed order line item, 2 = "notify me when back in stock" request.
+-- price: unit price actually paid at order time (after offer/privilege discount); NULL for cart rows.
 CREATE TABLE IF NOT EXISTS orderdetails (
     id SERIAL PRIMARY KEY,
     productcode VARCHAR(50) NOT NULL REFERENCES productdetails(code),
     userid INTEGER NOT NULL REFERENCES userinfo(id),
     quantity INTEGER,
     ordertype INTEGER NOT NULL DEFAULT 0,
-    invoiceid VARCHAR(50) REFERENCES ordermeta(invoiceid)
+    invoiceid VARCHAR(50) REFERENCES ordermeta(invoiceid),
+    price INTEGER
 );
 
 -- express-session store (connect-pg-simple).
@@ -64,6 +68,67 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 CREATE INDEX IF NOT EXISTS idx_user_sessions_expire ON user_sessions (expire);
 
+-- One review per user per product per order; rating 1-5 with optional free text.
+CREATE TABLE IF NOT EXISTS productreviews (
+    id SERIAL PRIMARY KEY,
+    userid INTEGER NOT NULL REFERENCES userinfo(id),
+    productcode VARCHAR(50) NOT NULL REFERENCES productdetails(code),
+    invoiceid VARCHAR(50) NOT NULL REFERENCES ordermeta(invoiceid),
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    reviewtext TEXT,
+    createdat TIMESTAMP NOT NULL DEFAULT NOW(),
+    updatedat TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_productreviews_productcode ON productreviews (productcode);
+-- Separate statement (not an inline UNIQUE column constraint) so it also gets
+-- applied to tables created before this constraint existed, since
+-- CREATE TABLE IF NOT EXISTS skips re-creating an already-existing table.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_productreviews_user_product_invoice
+    ON productreviews (userid, productcode, invoiceid);
+
 -- Backward-compatible column additions for databases created before a column existed.
-ALTER TABLE productdetails ADD COLUMN IF NOT EXISTS offerprice NUMERIC;
-ALTER TABLE productdetails ADD COLUMN IF NOT EXISTS lowstockthreshold INTEGER NOT NULL DEFAULT 5;
+-- Postgres 9.5 (local dev) doesn't support `ADD COLUMN IF NOT EXISTS` (added in 9.6),
+-- and since this whole file runs as one implicit transaction, that syntax error would
+-- roll back every statement above it — use an existence check instead.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'productdetails' AND column_name = 'offerprice'
+    ) THEN
+        ALTER TABLE productdetails ADD COLUMN offerprice NUMERIC;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'productdetails' AND column_name = 'lowstockthreshold'
+    ) THEN
+        ALTER TABLE productdetails ADD COLUMN lowstockthreshold INTEGER NOT NULL DEFAULT 5;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'productdetails' AND column_name = 'privilegeofferprice'
+    ) THEN
+        ALTER TABLE productdetails ADD COLUMN privilegeofferprice INTEGER;
+    END IF;
+
+    -- Migrate the older isprivilege boolean column (if present) into profiletype = 2,
+    -- then drop it now that profiletype is the single source of truth for user role/tier.
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'userinfo' AND column_name = 'isprivilege'
+    ) THEN
+        UPDATE userinfo SET profiletype = 2 WHERE isprivilege = TRUE AND profiletype = 0;
+        ALTER TABLE userinfo DROP COLUMN isprivilege;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'orderdetails' AND column_name = 'price'
+    ) THEN
+        ALTER TABLE orderdetails ADD COLUMN price INTEGER;
+    END IF;
+END$$;
+
