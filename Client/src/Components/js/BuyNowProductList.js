@@ -1,14 +1,23 @@
 import { useState } from 'react';
 import "../css/BuyNowProductList.css";
 
-function getEffectivePrice(product) {
-    return product.offerprice && Number(product.offerprice) > 0 && Number(product.offerprice) < Number(product.price)
+function getEffectivePrice(product, isPrivilegeUser) {
+    const basePrice = Number(product.price);
+    const publicOfferPrice = product.offerprice && Number(product.offerprice) > 0 && Number(product.offerprice) < basePrice
         ? Number(product.offerprice)
-        : Number(product.price);
+        : null;
+    const privilegeOfferPrice = isPrivilegeUser && product.privilegeofferprice && Number(product.privilegeofferprice) > 0 && Number(product.privilegeofferprice) < basePrice
+        ? Number(product.privilegeofferprice)
+        : null;
+    if (privilegeOfferPrice !== null && (publicOfferPrice === null || privilegeOfferPrice <= publicOfferPrice)) {
+        return { price: privilegeOfferPrice, isPrivilegePriceApplied: true };
+    }
+    return { price: publicOfferPrice !== null ? publicOfferPrice : basePrice, isPrivilegePriceApplied: false };
 }
 
 export default function BuyNowProductList(props) {
-    const unitPrice = getEffectivePrice(props.products[0]);
+    const isPrivilegeUser = Boolean(props.userDetails?.isPrivilege);
+    const { price: unitPrice, isPrivilegePriceApplied } = getEffectivePrice(props.products[0], isPrivilegeUser);
     const basePrice = Number(props.products[0].price);
     const hasOffer = unitPrice < basePrice;
     const discountPercent = hasOffer ? Math.max(1, Math.round(((basePrice - unitPrice) / basePrice) * 100)) : 0;
@@ -54,7 +63,11 @@ export default function BuyNowProductList(props) {
                     <span className="buyNowProductInfo">
                         <span className="buyNowProductNameRow">
                             <h3>{product.name}</h3>
-                            {hasOffer && <span className="buyNowOfferBadge">{discountPercent}% OFF</span>}
+                            {hasOffer && (
+                                <span className={`buyNowOfferBadge${isPrivilegePriceApplied ? ' buyNowPrivilegeBadge' : ''}`}>
+                                    {isPrivilegePriceApplied ? <><i className="fa-solid fa-star"></i> Privilege {discountPercent}% OFF</> : `${discountPercent}% OFF`}
+                                </span>
+                            )}
                         </span>
 
                         <span className="buyNowPriceRow">
