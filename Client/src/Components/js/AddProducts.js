@@ -9,7 +9,7 @@ export default function AddProducts() {
     const [success, setSuccess] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
     // fields for update mode pre-fill
-    const [updateFields, setUpdateFields] = useState({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '', offerPrice: '', lowStockThreshold: '' });
+    const [updateFields, setUpdateFields] = useState({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '', offerPrice: '', lowStockThreshold: '', privilegeOfferPrice: '' });
     const [lookupCode, setLookupCode] = useState('');
     const [lookupError, setLookupError] = useState('');
 
@@ -19,7 +19,7 @@ export default function AddProducts() {
         return () => clearTimeout(t);
     }, [success]);
 
-    function validate(code, name, price, description, quantity, isUpdate, offerPrice, lowStockThreshold) {
+    function validate(code, name, price, description, quantity, isUpdate, offerPrice, lowStockThreshold, privilegeOfferPrice) {
         const errs = {};
         if (!code.trim()) errs.code = 'Product code is required.';
         if (!isUpdate) {
@@ -35,6 +35,13 @@ export default function AddProducts() {
                 errs.offerPrice = 'Enter a valid positive offer price.';
             } else if (price && Number(offerPrice) >= Number(price)) {
                 errs.offerPrice = 'Offer price must be less than the price.';
+            }
+        }
+        if (privilegeOfferPrice.trim()) {
+            if (isNaN(privilegeOfferPrice) || Number(privilegeOfferPrice) <= 0) {
+                errs.privilegeOfferPrice = 'Enter a valid positive privilege offer price.';
+            } else if (price && Number(privilegeOfferPrice) >= Number(price)) {
+                errs.privilegeOfferPrice = 'Privilege offer price must be less than the price.';
             }
         }
         if (lowStockThreshold.trim() && (isNaN(lowStockThreshold) || Number(lowStockThreshold) < 0)) {
@@ -75,7 +82,8 @@ export default function AddProducts() {
                 unit: p.unit || '',
                 img_src: p.img_src || '',
                 offerPrice: p.offerprice ?? '',
-                lowStockThreshold: p.lowstockthreshold ?? ''
+                lowStockThreshold: p.lowstockthreshold ?? '',
+                privilegeOfferPrice: p.privilegeofferprice ?? ''
             });
             setImagePreview(p.img_src || null);
         } catch (err) {
@@ -88,7 +96,7 @@ export default function AddProducts() {
         setErrors({});
         setSuccess('');
         setImagePreview(null);
-        setUpdateFields({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '', offerPrice: '', lowStockThreshold: '' });
+        setUpdateFields({ name: '', price: '', description: '', quantity: '', unit: '', img_src: '', offerPrice: '', lowStockThreshold: '', privilegeOfferPrice: '' });
         setLookupCode('');
         setLookupError('');
     }
@@ -104,8 +112,9 @@ export default function AddProducts() {
         const unit = event.target.unit.value;
         const offerPrice = isUpdate ? event.target.uofferPrice.value : event.target.offerPrice.value;
         const lowStockThreshold = isUpdate ? event.target.ulowStockThreshold.value : event.target.lowStockThreshold.value;
+        const privilegeOfferPrice = isUpdate ? event.target.uprivilegeOfferPrice.value : event.target.privilegeOfferPrice.value;
 
-        const errs = validate(code, name, price, description, quantity, isUpdate, offerPrice, lowStockThreshold);
+        const errs = validate(code, name, price, description, quantity, isUpdate, offerPrice, lowStockThreshold, privilegeOfferPrice);
         if (Object.keys(errs).length > 0) {
             setErrors(errs);
             setSuccess('');
@@ -116,8 +125,8 @@ export default function AddProducts() {
         try {
             const url = isUpdate ? `${process.env.REACT_APP_API_URL}/products/update` : `${process.env.REACT_APP_API_URL}/products/add`;
             const body = isUpdate
-                ? { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview, offerprice: offerPrice.trim() ? Number(offerPrice) : null, lowstockthreshold: lowStockThreshold.trim() ? Number(lowStockThreshold) : null }
-                : { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview, offerprice: offerPrice.trim() ? Number(offerPrice) : null, lowstockthreshold: lowStockThreshold.trim() ? Number(lowStockThreshold) : null };
+                ? { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview, offerprice: offerPrice.trim() ? Number(offerPrice) : null, lowstockthreshold: lowStockThreshold.trim() ? Number(lowStockThreshold) : null, privilegeofferprice: privilegeOfferPrice.trim() ? Number(privilegeOfferPrice) : null }
+                : { code, name, price: Number(price), description, quantity: Number(quantity), unit: unit || null, img_src: imagePreview, offerprice: offerPrice.trim() ? Number(offerPrice) : null, lowstockthreshold: lowStockThreshold.trim() ? Number(lowStockThreshold) : null, privilegeofferprice: privilegeOfferPrice.trim() ? Number(privilegeOfferPrice) : null };
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -214,6 +223,14 @@ export default function AddProducts() {
                         onChange={mode === 'update' ? e => setUpdateFields(f => ({...f, offerPrice: e.target.value})) : undefined}
                         className={`prodOfferPrice${errors.offerPrice ? ' inputErrorBorder' : ''}`} placeholder="Enter discounted offer price, if any" />
                     {errors.offerPrice && <span className="inputError">{errors.offerPrice}</span>}
+                </label>
+                <label className="addProductsLabel">
+                    Privilege Offer Price (₹) <span className="optionalFieldHint">optional, applies to privilege customers</span>
+                    <input type="number" name={mode === 'update' ? 'uprivilegeOfferPrice' : 'privilegeOfferPrice'} min="0" step="0.01"
+                        value={mode === 'update' ? updateFields.privilegeOfferPrice : undefined}
+                        onChange={mode === 'update' ? e => setUpdateFields(f => ({...f, privilegeOfferPrice: e.target.value})) : undefined}
+                        className={`prodPrivilegeOfferPrice${errors.privilegeOfferPrice ? ' inputErrorBorder' : ''}`} placeholder="Enter special offer price for privilege customers" />
+                    {errors.privilegeOfferPrice && <span className="inputError">{errors.privilegeOfferPrice}</span>}
                 </label>
                 <label className="addProductsLabel">
                     Unit
