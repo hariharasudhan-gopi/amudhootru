@@ -61,6 +61,28 @@ router.get('/reviews/pending', requireAuth, async function(req, res) {
     }
 });
 
+// Public: latest 10 reviews left by any customer for a given product.
+router.get('/reviews/product/:productcode', async function(req, res) {
+    const { productcode } = req.params;
+
+    try {
+        const result = await pool.query(
+            `SELECT pr.rating, pr.reviewtext, pr.createdat, ui.name AS reviewername
+             FROM productreviews pr
+             JOIN userinfo ui ON ui.id = pr.userid
+             WHERE pr.productcode = $1
+             ORDER BY pr.createdat DESC
+             LIMIT 10`,
+            [productcode]
+        );
+
+        res.status(200).json({ reviews: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 // Creates or updates one or more product reviews for an order belonging to the user.
 router.post('/reviews/submit', requireAuth, async function(req, res) {
     const userId = req.user.userId;
