@@ -365,6 +365,18 @@
     font-size: 0.92rem;
     white-space: nowrap;
 }
+.privilegePriceBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #f5b700, #e29c00);
+    color: #3f3000;
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-weight: 800;
+    font-size: 0.86rem;
+    white-space: nowrap;
+}
 .product_metaInfo {
     margin-top: 4px;
     display: grid;
