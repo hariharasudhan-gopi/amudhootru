@@ -2,6 +2,8 @@ import "../css/TrackOrders.css";
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import StarRatingInput from './StarRatingInput';
+import ProductReviewPopup from './ProductReviewPopup';
 
 const STATUS_CONFIG = {
     delivered:  { label: 'Delivered',   color: '#1a7a4a' },
@@ -29,8 +31,86 @@ function PaymentStatusBadge({ status }) {
     return <span className={className}>{status || 'Pending'}</span>;
 }
 
+function ReviewCell({ invoiceid, productcode, review, onSaved }) {
+    const [editing, setEditing] = useState(!review);
+    const [rating, setRating] = useState(review?.rating || 0);
+    const [reviewtext, setReviewtext] = useState(review?.reviewtext || '');
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
+
+    async function save() {
+        if (!rating) {
+            setError('Please select a rating.');
+            return;
+        }
+        setSaving(true);
+        setError('');
+        try {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/reviews/submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ invoiceid, reviews: [{ productcode, rating, reviewtext }] })
+            });
+            if (!res.ok) {
+                const msg = await res.text();
+                throw new Error(msg);
+            }
+            onSaved({ rating, reviewtext });
+            setEditing(false);
+        } catch (err) {
+            setError('Failed to save review. Please try again.');
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    if (!editing) {
+        return (
+            <span className="reviewCell">
+                <StarRatingInput value={rating} readOnly />
+                {reviewtext && <p className="reviewCellText">{reviewtext}</p>}
+                <button className="reviewCellEditBtn" onClick={() => setEditing(true)}>
+                    <i className="fa-solid fa-pen"></i> Edit
+                </button>
+            </span>
+        );
+    }
+
+    return (
+        <span className="reviewCell reviewCell_editing">
+            <StarRatingInput value={rating} onChange={setRating} />
+            <textarea
+                className="reviewCellTextarea"
+                rows={2}
+                placeholder="Write a review (optional)"
+                value={reviewtext}
+                onChange={(e) => setReviewtext(e.target.value)}
+            />
+            {error && <p className="reviewCellError">{error}</p>}
+            <span className="reviewCellActions">
+                <button className="reviewCellSaveBtn" onClick={save} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+                {review && (
+                    <button
+                        className="reviewCellCancelBtn"
+                        onClick={() => {
+                            setEditing(false);
+                            setRating(review.rating || 0);
+                            setReviewtext(review.reviewtext || '');
+                            setError('');
+                        }}
+                    >
+                        Cancel
+                    </button>
+                )}
+            </span>
+        </span>
+    );
+}
+
 export function TrackOrders(props) {
     const [orders, setOrders] = useState([]);
+    const [pendingReview, setPendingReview] = useState(null);
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -59,6 +139,54 @@ export function TrackOrders(props) {
         fetchOrders();
     }, [props.userDetails.userId]);
 
+    useEffect(() => {
+        const fetchPendingReview = async () => {
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/reviews/pending`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+                if (data.pending) {
+                    setPendingReview(data);
+                }
+            } catch (error) {
+                console.error('Error fetching pending review:', error);
+            }
+        };
+        fetchPendingReview();
+    }, [props.userDetails.userId]);
+
+    function updateOrderReview(invoiceid, productcode, review) {
+        setOrders((prev) => prev.map((order) => {
+            if (order.invoiceid !== invoiceid) return order;
+            return {
+                ...order,
+                products: order.products.map((p) => (p.productcode === productcode ? { ...p, review } : p))
+            };
+        }));
+    }
+
+    async function submitPendingReviews(reviews) {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/reviews/submit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ invoiceid: pendingReview.invoiceid, reviews })
+        });
+        if (!res.ok) {
+            const msg = await res.text();
+            throw new Error(msg);
+        }
+
+        reviews.forEach((review) => updateOrderReview(pendingReview.invoiceid, review.productcode, review));
+        setPendingReview(null);
+    }
+
     const navigate = useNavigate();
 
     function goToProductPage() {
@@ -68,6 +196,13 @@ export function TrackOrders(props) {
   return (
     <>
     <p className="backtoProductPage" onClick={goToProductPage}>&#8592; Back to Shop</p>
+    {pendingReview && (
+        <ProductReviewPopup
+            products={pendingReview.products}
+            onSubmit={submitPendingReviews}
+            onClose={() => setPendingReview(null)}
+        />
+    )}
     <div className="trackOrdersWrapper">
       <h1 className="trackOrdersTitle">My Orders</h1>
         <table className="ordersTable">
@@ -93,6 +228,7 @@ export function TrackOrders(props) {
                             <tr>
                                 <th>Product Name</th>
                                 <th>Quantity</th>
+                                <th>Your Review</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -100,6 +236,14 @@ export function TrackOrders(props) {
                                 <tr key={p.productcode}>
                                     <td>{p.productname}</td>
                                     <td>{p.quantity}{p.unit ? ' ' + p.unit : ''}</td>
+                                    <td>
+                                        <ReviewCell
+                                            invoiceid={order.invoiceid}
+                                            productcode={p.productcode}
+                                            review={p.review}
+                                            onSaved={(review) => updateOrderReview(order.invoiceid, p.productcode, review)}
+                                        />
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
