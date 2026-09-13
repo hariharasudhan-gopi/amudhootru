@@ -388,12 +388,45 @@
     background-color: #f8f3e8;
     color: #263c1f;
     border: 2px solid #263c1f;
+    cursor: default;
 }
 .addToCartButton_inCart:hover{
     background-color: #eee6d2;
 }
-.addToCartButton_inCart i{
-    margin-right: 8px;
+.cartQuantityStepper{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+.qtyStepBtn{
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background-color: #263c1f;
+    color: #f8f3e8;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0;
+}
+.qtyStepBtn:hover{
+    background-color: #1f3219;
+}
+.qtyStepBtn_delete{
+    background-color: #c0392b;
+}
+.qtyStepBtn_delete:hover{
+    background-color: #a5301f;
+}
+.qtyStepValue{
+    font-size: 1.15rem;
+    font-weight: 800;
 }
 
 @media (max-width: 768px) {
