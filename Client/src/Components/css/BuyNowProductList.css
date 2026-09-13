@@ -68,6 +68,14 @@
     font-size: 0.72rem;
     font-weight: 800;
 }
+.buyNowPrivilegeBadge{
+    background: linear-gradient(135deg, #f5b700, #e29c00);
+    color: #3f3000;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
 .buyNowPriceRow{
     display: flex;
     align-items: baseline;
