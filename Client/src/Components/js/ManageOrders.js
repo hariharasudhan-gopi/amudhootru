@@ -209,12 +209,31 @@ export default function ManageOrders(props) {
                                     </td>
                                     <td>
                                         <ul className="manageProductList">
-                                            {(order.products || []).map(p => (
-                                                <li key={p.productcode}>
-                                                    {p.productname} × {p.quantity}{p.unit ? ' ' + p.unit : ''}
-                                                    <span className="productBillAmount"> — ₹{(Number(p.price) || 0) * (Number(p.quantity) || 1)}</span>
-                                                </li>
-                                            ))}
+                                            {(order.products || []).map(p => {
+                                                const unitPrice = Number(p.price) || 0;
+                                                const mrp = Number(p.mrp) || unitPrice;
+                                                const qty = Number(p.quantity) || 1;
+                                                const hasOffer = mrp > unitPrice;
+                                                return (
+                                                    <li key={p.productcode} className="manageProductItem">
+                                                        <div className="productNameRow">
+                                                            <span className="productNameText">{p.productname}</span>
+                                                            <span className="productQty">× {qty}{p.unit ? ' ' + p.unit : ''}</span>
+                                                        </div>
+                                                        <div className="productPriceRow">
+                                                            {hasOffer && <span className="productMrp">₹{mrp}</span>}
+                                                            <span className="productUnitPrice">₹{unitPrice}/unit</span>
+                                                            {hasOffer && p.offerlabel && (
+                                                                <span className="productOfferBadge">{p.offerlabel}</span>
+                                                            )}
+                                                            {hasOffer && p.discountpercent > 0 && (
+                                                                <span className="productDiscountPercent">-{p.discountpercent}%</span>
+                                                            )}
+                                                        </div>
+                                                        <div className="productBillAmount">Total: ₹{unitPrice * qty}</div>
+                                                    </li>
+                                                );
+                                            })}
                                         </ul>
                                     </td>
                                     <td>

@@ -366,16 +366,37 @@ router.get('/orders/all', requireAdmin, async function(req, res) {
             );
             const products = await Promise.all(detailsResult.rows.map(async (item) => {
                 const prodResult = await pool.query(
-                    'SELECT name, price, unit FROM productdetails WHERE code = $1',
+                    'SELECT name, price, unit, offerprice, privilegeofferprice FROM productdetails WHERE code = $1',
                     [item.productcode]
                 );
+                const productDetails = prodResult.rows[0];
+                // Prefer the price actually paid at order time; fall back to the current
+                // product price only for legacy orders placed before this was recorded.
+                const paidPrice = (item.price !== null && item.price !== undefined) ? Number(item.price) : Number(productDetails?.price ?? 0);
+                // Current catalog (MRP) price used as the reference point to surface any offer applied at purchase time.
+                const mrp = Number(productDetails?.price ?? paidPrice);
+                const offerPrice = Number(productDetails?.offerprice ?? 0);
+                const privilegeOfferPrice = Number(productDetails?.privilegeofferprice ?? 0);
+
+                let offerLabel = null;
+                if (order.isprivilegecustomer && privilegeOfferPrice > 0 && paidPrice === privilegeOfferPrice) {
+                    offerLabel = 'Privilege Offer';
+                } else if (offerPrice > 0 && paidPrice === offerPrice) {
+                    offerLabel = 'Special Offer';
+                } else if (paidPrice < mrp) {
+                    offerLabel = 'Discount Applied';
+                }
+                const discountAmount = mrp > paidPrice ? mrp - paidPrice : 0;
+                const discountPercent = mrp > 0 && discountAmount > 0 ? Math.round((discountAmount / mrp) * 100) : 0;
+
                 return {
                     ...item,
-                    productname: prodResult.rows[0]?.name ?? item.productcode,
-                    // Prefer the price actually paid at order time; fall back to the current
-                    // product price only for legacy orders placed before this was recorded.
-                    price: (item.price !== null && item.price !== undefined) ? Number(item.price) : Number(prodResult.rows[0]?.price ?? 0),
-                    unit: prodResult.rows[0]?.unit || null
+                    productname: productDetails?.name ?? item.productcode,
+                    price: paidPrice,
+                    unit: productDetails?.unit || null,
+                    mrp,
+                    offerlabel: offerLabel,
+                    discountpercent: discountPercent
                 };
             }));
             return { ...order, products };
