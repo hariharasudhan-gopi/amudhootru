@@ -55,6 +55,13 @@ router.post('/api/chat', async (req, res) => {
     });
   } catch (error) {
     console.error('RAG chat error:', error?.message || error);
+
+    if (error?.status === 503 || error?.status === 429) {
+      return res.status(503).json({
+        error: 'The chat assistant is temporarily busy. Please try again in a moment.',
+      });
+    }
+
     return res.status(500).json({
       error: 'Unable to process chat request right now. Please try again.',
     });

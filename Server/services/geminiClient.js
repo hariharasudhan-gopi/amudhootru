@@ -1,4 +1,28 @@
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+const RETRYABLE_STATUS_CODES = new Set([429, 503]);
+const MAX_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 500;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url, options) {
+  let lastError;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    const response = await fetch(url, options);
+
+    if (response.ok || !RETRYABLE_STATUS_CODES.has(response.status) || attempt === MAX_RETRIES) {
+      return response;
+    }
+
+    lastError = response;
+    await sleep(RETRY_BASE_DELAY_MS * 2 ** attempt);
+  }
+
+  return lastError;
+}
 
 async function embedTexts({ apiKey, model, texts, outputDimensionality }) {
   if (!apiKey) {
@@ -11,7 +35,7 @@ async function embedTexts({ apiKey, model, texts, outputDimensionality }) {
     ...(outputDimensionality ? { outputDimensionality } : {}),
   }));
 
-  const response = await fetch(
+  const response = await fetchWithRetry(
     `${BASE_URL}/models/${model}:batchEmbedContents?key=${apiKey}`,
     {
       method: 'POST',
@@ -34,7 +58,7 @@ async function generateContent({ apiKey, model, systemInstruction, userPrompt, t
     throw new Error('Missing API key for Gemini client');
   }
 
-  const response = await fetch(
+  const response = await fetchWithRetry(
     `${BASE_URL}/models/${model}:generateContent?key=${apiKey}`,
     {
       method: 'POST',
@@ -49,7 +73,9 @@ async function generateContent({ apiKey, model, systemInstruction, userPrompt, t
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(`Gemini generate request failed (${response.status}): ${errorBody}`);
+    const error = new Error(`Gemini generate request failed (${response.status}): ${errorBody}`);
+    error.status = response.status;
+    throw error;
   }
 
   const data = await response.json();
