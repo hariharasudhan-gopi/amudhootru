@@ -12,6 +12,7 @@ import ManageOrders from './Components/js/ManageOrders.js';
 import Accounts from './Components/js/Accounts.js';
 import About from './Components/js/About.js';
 import SupportChatbot from './Components/js/SupportChatbot.js';
+import AIAssistant from './Components/js/AIAssistant.js';
 
 function App() {
 
@@ -102,6 +103,7 @@ function App() {
           </Routes>
         </div>
         <SupportChatbot />
+        <AIAssistant isLoggedIn={isLoggedIn} userDetails={userDetails} />
       </BrowserRouter>  
       
     </div>

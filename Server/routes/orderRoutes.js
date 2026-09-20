@@ -11,6 +11,7 @@ const {
 } = require("./emailService");
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { checkLowStockAndAlertAdmin } = require('../services/stockAlerts');
+const orderService = require('../services/orderService');
 
 require("dotenv").config();
 const pool = require('../db/pool');
@@ -34,38 +35,6 @@ const router = express.Router();
 
 router.use(express.json());
 
-function getPaymentStatus(order) {
-    const paymentSignature = String(order.paymentsignature || '').toLowerCase();
-    const isCod = paymentSignature.startsWith('cash-on-delivery') || String(order.paymentid || '').startsWith('COD-');
-
-    if (isCod) {
-        const isCodPaid = paymentSignature === 'cash-on-delivery-paid';
-        return isCodPaid ? 'Paid (COD Collected)' : 'Pending (Cash on Delivery)';
-    }
-
-    if (order.paymentid) {
-        return 'Paid Online';
-    }
-
-    return 'Pending';
-}
-
-// Computes the unit price actually payable for a product, applying the privilege
-// offer price (if the user qualifies) whenever it beats or matches the public offer.
-function getEffectivePrice(productDetails, isPrivilegeUser) {
-    const basePrice = Number(productDetails.price);
-    const publicOfferPrice = productDetails.offerprice && Number(productDetails.offerprice) > 0 && Number(productDetails.offerprice) < basePrice
-        ? Number(productDetails.offerprice)
-        : null;
-    const privilegeOfferPrice = isPrivilegeUser && productDetails.privilegeofferprice && Number(productDetails.privilegeofferprice) > 0 && Number(productDetails.privilegeofferprice) < basePrice
-        ? Number(productDetails.privilegeofferprice)
-        : null;
-    if (privilegeOfferPrice !== null && (publicOfferPrice === null || privilegeOfferPrice <= publicOfferPrice)) {
-        return privilegeOfferPrice;
-    }
-    return publicOfferPrice !== null ? publicOfferPrice : basePrice;
-}
-
 // Step 1: Create a Razorpay order and return order_id to the client
 router.post('/orders/create-payment', requireAuth, async function(req, res) {
     const { products } = req.body;
@@ -85,7 +54,7 @@ router.post('/orders/create-payment', requireAuth, async function(req, res) {
             }
 
             const productDetails = productResult.rows[0];
-            const effectivePrice = getEffectivePrice(productDetails, isPrivilegeUser);
+            const effectivePrice = orderService.getEffectivePrice(productDetails, isPrivilegeUser);
             productsPrice += effectivePrice * (product.quantity || 1);
         }
 
@@ -146,86 +115,16 @@ router.post('/orders/place', requireAuth, async function(req, res) {
             savedPaymentSignature = 'cash-on-delivery';
         }
 
-        // Payment is verified — save the order
-        const orderDate = new Date();
-
-        const orderResult = await pool.query(
-            'INSERT INTO ordermeta (userid, deliverystatus, deliveryaddress, dateoforder, paymentid, paymentsignature) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-            [userId, 0, deliveryAddress, orderDate, savedPaymentId, savedPaymentSignature]
-        );
-
-        const orderId = orderResult.rows[0].id;
-
-        const invoiceNumber = `INV-${new Date().getFullYear()}-${String(orderId).padStart(6, "0")}`;
-
-        await pool.query(
-            'UPDATE ordermeta SET invoiceid = $1 WHERE id = $2',
-            [invoiceNumber, orderId]
-        );
-
         const isPrivilegeUser = Boolean(req.user.isPrivilege);
-        const pricedProducts = [];
 
-        for (const product of products) {
-            const productBefore = await pool.query(
-                'SELECT name, price, offerprice, privilegeofferprice, availablequantity, lowstockthreshold FROM productdetails WHERE code = $1',
-                [product.productId]
-            );
-            if (productBefore.rows.length === 0) {
-                return res.status(404).json({ message: `Product with ID ${product.productId} not found` });
-            }
-            const productDetails = productBefore.rows[0];
-            const quantity = product.quantity || 1;
-            // Compute the price server-side (never trust a client-supplied price) so the
-            // stored/invoiced amount always reflects the offer/privilege price actually applicable.
-            const unitPrice = getEffectivePrice(productDetails, isPrivilegeUser);
-            pricedProducts.push({ name: productDetails.name, quantity, price: unitPrice });
-
-            await pool.query(
-                'INSERT INTO orderdetails (productcode, userid, quantity, ordertype, invoiceid, price) VALUES ($1, $2, $3, $4, $5, $6)',
-                [product.productId, userId, quantity, 1, invoiceNumber, unitPrice]
-            );
-
-            const previousQuantity = Number(productDetails.availablequantity ?? 0);
-            const newQuantity = Math.max(previousQuantity - quantity, 0);
-
-            // decrement stock; floor at 0 to prevent negative values
-            await pool.query(
-                'UPDATE productdetails SET availablequantity = GREATEST(availablequantity - $1, 0) WHERE code = $2',
-                [quantity, product.productId]
-            );
-
-            await checkLowStockAndAlertAdmin({
-                code: product.productId,
-                name: productDetails.name,
-                previousQuantity,
-                newQuantity,
-                threshold: productDetails.lowstockthreshold
-            });
-        }
-
-        await pool.query(
-            'DELETE FROM orderdetails WHERE userid = $1 AND ordertype = $2',
-            [userId, 0]
-        );
-
-        // await transporter.sendMail(mailOptions);
-        await sendInvoiceEmail({
-            customerName: usermail,
-            customerEmail: usermail,
-            products: pricedProducts.map(product => ({
-                name: product.name,
-                quantity: product.quantity,
-                price: product.price * product.quantity
-            })),
-            invoiceNumber,
-            orderDate: new Date(),
-            paymentStatus: selectedPaymentMethod === 'cod' ? 'Cash on Delivery' : 'Paid',
-            subtotal: pricedProducts.reduce((sum, product) => sum + product.price * product.quantity, 0),
-            tax: 0,
-            shipping: 0,
-            grandTotal: pricedProducts.reduce((sum, product) => sum + product.price * product.quantity, 0),
-            supportEmail: process.env.SUPPORT_EMAIL || 'support@amudhootru.com'
+        const { orderId } = await orderService.createOrder({
+            userId,
+            usermail,
+            isPrivilegeUser,
+            products,
+            deliveryAddress,
+            paymentId: savedPaymentId,
+            paymentSignature: savedPaymentSignature,
         });
 
         res.status(200).json({
@@ -235,6 +134,9 @@ router.post('/orders/place', requireAuth, async function(req, res) {
             orderId: orderId
         });
     } catch (err) {
+        if (err.code === 'PRODUCT_NOT_FOUND') {
+            return res.status(404).json({ message: err.message });
+        }
         console.error(err);
         res.status(500).send('Internal Server Error');
     }
@@ -244,77 +146,8 @@ router.get('/orders/placed', requireAuth, async function(req, res) {
     const userId = req.user.userId;
 
     try {
-        const result = await pool.query(
-            'SELECT * FROM ordermeta WHERE userid = $1 AND deliverystatus != -1',
-            [userId]
-        );
-
-        const orders = result.rows;
-        for (var i = 0; i < orders.length; i++) {
-            const paymentSignature = String(orders[i].paymentsignature || '').toLowerCase();
-            orders[i].iscodorder = paymentSignature.startsWith('cash-on-delivery') || String(orders[i].paymentid || '').startsWith('COD-');
-            orders[i].iscodpaid = paymentSignature === 'cash-on-delivery-paid';
-            orders[i].paymentstatus = getPaymentStatus(orders[i]);
-
-            if(orders[i].deliverystatus === 0){
-                orders[i].deliverystatus = "Order Placed";
-            }else if(orders[i].deliverystatus === 1){
-                orders[i].deliverystatus = "Order Shipped";
-            }else if(orders[i].deliverystatus === 2){
-                orders[i].deliverystatus = "Out for Delivery";
-            }else if(orders[i].deliverystatus === 3){
-                orders[i].deliverystatus = "Delivered";
-            }
-        }
-
-        const orderDetailsPromises = orders.map(async (order) => {
-            const orderDetailsResult = await pool.query(
-                'SELECT * FROM orderdetails WHERE invoiceid = $1',
-                [order.invoiceid]
-            );
-
-            return {
-                ...order,
-                products: orderDetailsResult.rows
-            };
-        });
-
-        const ordersWithDetails = await Promise.all(orderDetailsPromises);
-
-        const productDetailsPromises = ordersWithDetails.map(async (order) => {
-            const productPromises = order.products.map(async (product) => {
-                const productResult = await pool.query(
-                    'SELECT * FROM productdetails WHERE code = $1',
-                    [product.productcode]
-                );
-
-                const reviewResult = await pool.query(
-                    'SELECT rating, reviewtext FROM productreviews WHERE userid = $1 AND productcode = $2 AND invoiceid = $3',
-                    [userId, product.productcode, order.invoiceid]
-                );
-
-                return {
-                    ...product,
-                    productname: productResult.rows[0].name,
-                    // Prefer the price actually paid at order time; fall back to the current
-                    // product price only for legacy orders placed before this was recorded.
-                    price: (product.price !== null && product.price !== undefined) ? Number(product.price) : Number(productResult.rows[0].price),
-                    unit: productResult.rows[0].unit || null,
-                    review: reviewResult.rows[0] || null
-                };
-            });
-
-            const productsWithDetails = await Promise.all(productPromises);
-
-            return {
-                ...order,
-                products: productsWithDetails
-            };
-        });
-
-        const ordersWithProductDetails = await Promise.all(productDetailsPromises); 
-
-        res.status(200).json(ordersWithProductDetails);
+        const orders = await orderService.getUserOrders(userId);
+        res.status(200).json(orders);
     } catch (err) {
         console.error(err);
         res.status(500).send('Internal Server Error');
@@ -355,7 +188,7 @@ router.get('/orders/all', requireAdmin, async function(req, res) {
                 ...order,
                 iscodorder: isCodOrder,
                 iscodpaid: isCodPaid,
-                paymentstatus: getPaymentStatus(order),
+                paymentstatus: orderService.getPaymentStatus(order),
             };
         });
 

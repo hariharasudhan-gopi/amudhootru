@@ -4,6 +4,8 @@ require('dotenv').config();
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const pool = require('../db/pool');
 const { checkLowStockAndAlertAdmin, notifyBackInStock, DEFAULT_LOW_STOCK_THRESHOLD } = require('../services/stockAlerts');
+const productService = require('../services/productService');
+const cartService = require('../services/cartService');
 
 const router = express.Router();
 
@@ -13,25 +15,13 @@ router.get('/products', async function(req, res) {
 
     try{
 
-        const result = await pool.query(
-            `SELECT p.*,
-                    COALESCE(r.avgrating, 0) AS avgrating,
-                    COALESCE(r.reviewcount, 0) AS reviewcount
-             FROM productdetails p
-             LEFT JOIN (
-                 SELECT productcode, AVG(rating) AS avgrating, COUNT(*) AS reviewcount
-                 FROM productreviews
-                 GROUP BY productcode
-             ) r ON r.productcode = p.code`,
-            []
-        );
-        if (result.rows.length === 0) {
+        const products = await productService.getAllProductsWithRatings();
+        if (products.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: 'No products found'
             });
         }
-        const products = result.rows;
 
         res.status(200);
         res.json({ message: 'Products fetched successfully' ,
@@ -47,28 +37,10 @@ router.get('/products', async function(req, res) {
 
 router.post('/products/addtocart', requireAuth, async function(req, res) {
     var productCode = req.body.productCode;
-    var productName = req.body.productName;
     var userId = req.user.userId;
 
     try{
-        // Here you can implement the logic to add the product to the user's cart in the database.
-        // For example, you might have a "cart" table where you insert a new row with the product details.
-
-        const result = await pool.query(
-            'SELECT * FROM orderdetails WHERE productcode = $1 and ordertype = $2 and userid = $3',
-            [productCode, 0, userId]
-        );
-
-        if (result.rows.length === 0) {
-            await pool.query(
-                'INSERT INTO orderdetails (productcode, userid, ordertype, quantity) VALUES ($1, $2, $3, $4)',
-                [productCode, userId, 0, 1]
-            );
-        }
-
-        // Simulate adding to cart (you would replace this with actual database logic)
-        // await pool.query('INSERT INTO cart (product_code, product_name) VALUES ($1, $2)', [productCode, productName]);
-
+        await cartService.addProductToCart(userId, productCode);
         res.status(200).json({ message: 'Product added to cart successfully' });
 
     }catch(err){
@@ -83,27 +55,12 @@ router.get('/products/getcart', requireAuth, async function(req, res) {
 
     try{
 
-        const result = await pool.query(
-            'SELECT * FROM orderdetails where ordertype = $1 and userid = $2',
-            [0, userId]
-        );
-        if (result.rows.length === 0) {
+        const products = await cartService.getCart(userId);
+        if (products.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: 'No products found in cart'
             });
-        }
-        const products = result.rows;
-
-        for (let i = 0; i < products.length; i++) {
-            const productCode = products[i].productcode;
-            const productResult = await pool.query(
-                'SELECT * FROM productdetails where code = $1',
-                [productCode]
-            );
-            if (productResult.rows.length > 0) {
-                products[i] = { ...products[i], ...productResult.rows[0] };
-            }
         }
 
         res.status(200);
@@ -164,13 +121,10 @@ router.post('/products/add', requireAdmin, async function(req, res) {
 router.get('/products/:code', async function(req, res) {
     const { code } = req.params;
     try {
-        const result = await pool.query(
-            'SELECT * FROM productdetails WHERE code = $1',
-            [code]
-        );
-        if (result.rows.length === 0)
+        const product = await productService.getProductByCode(code);
+        if (!product)
             return res.status(404).send('Product not found.');
-        res.status(200).json({ product: result.rows[0] });
+        res.status(200).json({ product });
     } catch (err) {
         console.error(err);
         res.status(500).send('Internal Server Error');
@@ -301,25 +255,12 @@ router.post('/products/updatecartquantity', requireAuth, async function(req, res
     if (!Number.isInteger(qty) || qty < 1) return res.status(400).send('quantity must be a positive integer.');
 
     try {
-        const productResult = await pool.query(
-            'SELECT availablequantity FROM productdetails WHERE code = $1',
-            [productCode]
-        );
-        if (productResult.rows.length === 0) return res.status(404).send('Product not found.');
-
-        const availableQty = Number(productResult.rows[0].availablequantity);
-        if (!isNaN(availableQty) && qty > availableQty) {
-            return res.status(400).json({ message: `Only ${availableQty} unit(s) available in stock.` });
-        }
-
-        const result = await pool.query(
-            'UPDATE orderdetails SET quantity = $1 WHERE productcode = $2 AND userid = $3 AND ordertype = 0 RETURNING id',
-            [qty, productCode, userId]
-        );
-        if (result.rows.length === 0) return res.status(404).send('Product not found in cart.');
-
-        res.status(200).json({ message: 'Cart quantity updated.', quantity: qty });
+        const result = await cartService.setCartQuantity(userId, productCode, qty);
+        res.status(200).json({ message: 'Cart quantity updated.', quantity: result.quantity });
     } catch (err) {
+        if (err.code === 'PRODUCT_NOT_FOUND') return res.status(404).send('Product not found.');
+        if (err.code === 'INSUFFICIENT_STOCK') return res.status(400).json({ message: err.message });
+        if (err.code === 'NOT_IN_CART') return res.status(404).send('Product not found in cart.');
         console.error(err);
         res.status(500).send('Internal Server Error');
     }
@@ -330,10 +271,7 @@ router.post('/products/removefromcart', requireAuth, async function(req, res) {
     const userId = req.user.userId;
     if (!productCode) return res.status(400).send('productCode is required.');
     try {
-        await pool.query(
-            'DELETE FROM orderdetails WHERE productcode = $1 AND userid = $2 AND ordertype = 0',
-            [productCode, userId]
-        );
+        await cartService.removeFromCart(userId, productCode);
         res.status(200).json({ message: 'Product removed from cart.' });
     } catch (err) {
         console.error(err);
